@@ -1,0 +1,21 @@
+rigid — Additional Permission to the Mozilla Public License 2.0
+Copyright (c) 2026 David Dudas
+
+This file grants an additional permission under section 10.2 of the Mozilla
+Public License, Version 2.0 (see LICENSE). It only grants rights; it removes
+none.
+
+
+COMPILER OUTPUT
+---------------
+
+Output produced by this software — including any runtime prelude or support
+code that this compiler embeds in the programs it emits — is not covered by
+the License, and may be used, distributed, and licensed on any terms.
+
+This permission applies to the output alone. It does not extend to the
+compiler's own source files, which remain governed by the License.
+
+Compiling a program with rigid therefore places no obligation of any kind on
+that program. This mirrors the runtime exceptions carried by GCC and Bison,
+and exists so that no one has to reason about whether it applies.

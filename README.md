@@ -401,7 +401,7 @@ Mozilla Public License 2.0 — see [LICENSE](LICENSE).
 
 File-level copyleft: modifications to rigid's own files must be published,
 and you may combine it with proprietary code freely. Programs compiled *by*
-rigid carry no obligation at all — the License text includes an explicit
-additional permission saying so, so nobody has to reason about it.
+rigid carry no obligation at all — see [LICENSE-EXCEPTION](LICENSE-EXCEPTION),
+which says so explicitly so nobody has to reason about it.
 
 Copyright (c) 2026 David Dudas.

@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+title: "rigid: a text-first, content-addressed language kernel"
+message: "If you use this software or refer to its results, please cite it."
+type: software
+authors:
+  - family-names: Dudas
+    given-names: David
+    orcid: "https://orcid.org/0009-0000-9348-5438"
+repository-code: "https://github.com/DavidRDudas/rigidlang"
+license: MPL-2.0
+version: "1.8"
+abstract: >-
+  rigid derives an exact reference graph as a byproduct of compilation. A
+  definition's identity is the SHA-256 of its canonical form, with bound names
+  erased and every reference replaced by the hash of what it references, so
+  names are metadata and a rename cannot silently change meaning. Unlike prior
+  content-addressed systems it keeps ordinary text files and Git, and bounds
+  dynamism with declared dispatch sets rather than banning it. The exact graph
+  makes several things decidable that are elsewhere approximate: whether a diff
+  changed any definition's meaning, whether a merge conflict is real, whether a
+  dependency gained a capability, what code is unreachable, and which prior
+  conclusions a change invalidates.
+keywords:
+  - programming languages
+  - content addressing
+  - compilers
+  - software evolution
+  - supply chain security

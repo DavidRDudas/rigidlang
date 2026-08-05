@@ -30,11 +30,16 @@ jobs:
         run: ./build-wasm.sh
 
       - name: Check the generated doc pages are current
+        # rigid.wasm is excluded: it was just rebuilt by the step above, and a
+        # different rustc produces different bytes for identical source, so
+        # comparing it here would fail every build for no reason. The HTML is
+        # what has to match, because that is what goes stale when a doc is
+        # edited without regenerating.
         run: |
           python3 site/build.py
-          if ! git diff --quiet -- site; then
+          if ! git diff --quiet -- site ':!site/rigid.wasm'; then
             echo "site/ is out of date — run 'python3 site/build.py' and commit."
-            git --no-pager diff --stat -- site
+            git --no-pager diff --stat -- site ':!site/rigid.wasm'
             exit 1
           fi
 

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quarantine — rigid</title>
+<meta name="description" content="Why dynamism is declared rather than banned: dyn, tables, and guarantees G1-G4.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cg stroke='%232F4BD8' stroke-width='2.4' fill='none'%3E%3Cpath d='M8 24 L16 8 L24 24'/%3E%3C/g%3E%3Cg fill='%232F4BD8'%3E%3Ccircle cx='8' cy='24' r='3.4'/%3E%3Ccircle cx='16' cy='8' r='3.4'/%3E%3Ccircle cx='24' cy='24' r='3.4'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=9">
+<script>
+  try {
+    var t = localStorage.getItem("rigid-theme");
+    if (t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches)
+      document.documentElement.classList.add("dark");
+  } catch (e) {}
+</script>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap inner">
+    <a class="brand" href="index.html">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><g stroke="var(--accent)" stroke-width="2.4" fill="none"><path d="M8 24 L16 8 L24 24"/></g><g fill="var(--accent)"><circle cx="8" cy="24" r="3.4"/><circle cx="16" cy="8" r="3.4"/><circle cx="24" cy="24" r="3.4"/></g></svg>
+      <b>rigid</b><span class="ver">v1.8</span>
+    </a>
+    <select class="navpick" id="navpick" aria-label="Go to page">
+      <optgroup label="Language">
+        <option value="index.html">Home</option>
+        <option value="learn.html">Learn</option>
+        <option value="play.html">Playground</option>
+        <option value="spec.html">Specification</option>
+        <option value="tools.html">Tools</option>
+      </optgroup>
+      <optgroup label="Design">
+        <option value="paper.html">Paper</option>
+        <option value="quarantine.html" selected>Quarantine</option>
+      </optgroup>
+      <optgroup label="Evidence">
+        <option value="evidence.html">Evidence</option>
+        <option value="benchmark.html">Benchmark</option>
+        <option value="experiment.html">Experiment</option>
+        <option value="study.html">Study</option>
+        <option value="prereg.html">Pre-registration</option>
+      </optgroup>
+    </select>
+    <a class="lnk gh" href="https://github.com/DavidRDudas/rigidlang" aria-label="GitHub">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+    </a>
+    <button class="tbtn" id="theme" aria-label="Toggle dark mode">
+      <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+      <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+  </div>
+</nav>
+
+<div class="wrap doc">
+  <aside class="toc">
+    <div class="t">Quarantine</div>
+    <ol>
+      <li><a href="#1-the-problem">1. The problem</a></li>
+      <li><a href="#2-the-primitive">2. The primitive</a></li>
+      <li><a href="#3-guarantees">3. Guarantees</a></li>
+      <li><a href="#4-identity">4. Identity</a></li>
+      <li><a href="#5-costs-honestly">5. Costs, honestly</a></li>
+      <li><a href="#6-roadmap">6. Roadmap</a></li>
+      <li><a href="#7-relation-to-prior-art">7. Relation to prior art</a></li>
+      <li><a href="#8-open-questions">8. Open questions</a></li>
+    </ol>
+  </aside>
+  <main class="doc-body">
+<h1>Quarantined Dynamism</h1>
+<p>Design document for <code>dyn</code> — how first-class functions and effects enter a language whose reference graph must stay exact. This is the research core of the project: every other feature is engineering; this one is a position.</p>
+<h2 id="1-the-problem">1. The problem</h2>
+<p>Indirect calls destroy exact reference graphs. The moment <code>f(x)</code> can mean "call whatever <code>f</code> holds," the compiler no longer knows the call site's targets, <code>rdeps</code> becomes an approximation, blast radius becomes a guess, and every downstream guarantee (test-cache soundness, effect checking, safe rename) quietly degrades to heuristics. Existing systems pick a pole:</p>
+<ul class='tight'><li><strong>Total dynamism</strong> (JS, Python, enterprise platforms): everything is a late-bound name; the graph is reconstructed after the fact by analyzers (CHA, points-to, CodeQL/Glean/Kythe) and is <em>approximate by construction</em>.</li><li><strong>No dynamism</strong> (rigid v1): reject first-class functions entirely. Sound, and unusable past a certain program size.</li></ul>
+<p>The claim: this is a false dichotomy, and the middle point is not "some approximation" but <strong>declared over-approximation</strong> — dynamism whose possible targets are stated in the source and enforced at the boundary.</p>
+<h2 id="2-the-primitive">2. The primitive</h2>
+<p>Two constructs, two duties:</p>
+<p><strong>Creation is static.</strong> <code>&amp;name</code> produces a function reference value, and <code>fn(x) { ... }</code> produces a closure over one. Both are ordinary graph edges: a lambda's body is lifted to a top-level definition named <code>&lt;enclosing&gt;$&lt;n&gt;</code>, so even an anonymous function is a definition the compiler can point at, with a hash of its own. You cannot manufacture a callable without the compiler seeing exactly which definition it is. These values flow freely (lets, arguments, returns); flowing is harmless because…</p>
+<p><strong>Invocation is quarantined.</strong> A reference can only be <em>called</em> inside a <code>dyn</code> block that declares its possible targets:</p>
+<pre class="code"><code>dyn { double, triple }(f, x)</code></pre>
+<p>Each declared name resolves at compile time and becomes a graph edge at this site. At runtime, the callee's identity is checked for membership in the declared set; a reference from outside the set is refused with an error naming both the offender and the set. Membership is decided on identity — the resolved definition, not the spelling — so a rename cannot smuggle a target in or out.</p>
+<p>Direct calls (<code>g(x)</code> where <code>g</code> is a value) are a compile error (E0204) pointing at <code>dyn</code>. Bare definitions in value position are a compile error (E0206) pointing at <code>&amp;</code>. There is no third door.</p>
+<h2 id="3-guarantees">3. Guarantees</h2>
+<ul class='tight'><li><strong>G1 — Graph totality.</strong> Every definition a call site can ever invoke appears as a static edge at that site. Direct calls contribute their one target; <code>dyn</code> sites contribute their declared set. Nothing else invokes.</li><li><strong>G2 — Blast-radius soundness.</strong> <code>rdeps(d)</code> is a superset of d's true dynamic callers, computed from the compiler's own resolution. The demo shows <code>rdeps triple</code> finding the funref creator <em>and</em> both dyn sites.</li><li><strong>G3 — Effect bound.</strong> A <code>dyn</code> site's effect is the union over its declared set. The same declaration that bounds call targets bounds effects — one construct, two guarantees. This is why IO enters through this door: <code>print</code> requires <code>!io</code>, and <code>!io</code>-ness propagates along call edges (including dyn-set edges), checked statically in one pass because the graph is exact (E0207).</li><li><strong>G4 — No ambient escape.</strong> A <code>Fun</code> value is inert outside <code>dyn</code>: it can be compared, stored, passed, returned — never invoked. Escaped references cannot smuggle calls.</li></ul>
+<p>Soundness sketch (induction on evaluation): the only evaluation rules that transfer control to a definition are direct Call (single static target, resolved at compile time) and DynCall (membership-checked against a set whose members were resolved at compile time). Hence every runtime call edge is contained in the static edge set; G1 follows, G2–G3 are corollaries over that set; G4 holds because no other rule eliminates a <code>Fun</code>.</p>
+<h2 id="4-identity">4. Identity</h2>
+<p><code>&amp;name</code> canonicalizes as FUNREF over the target's hash. A lambda canonicalizes as CLOSURE over the <em>lifted definition's</em> hash plus the slots it captures — the body itself is not encoded at the site, so editing a lambda moves exactly one hash and renaming a captured local moves none. A <code>dyn</code> site canonicalizes as DYN over its target set <em>sorted by encoded reference bytes</em> — name-free, so the set's identity is order-insensitive in source and rename-insensitive in meaning. Consequences: renaming any target changes nothing; editing any target's content changes the dyn site's hash (the dependency cone includes the whole declared set). Test caching and drift detection therefore remain sound in the presence of dynamism.</p>
+<h2 id="5-costs-honestly">5. Costs, honestly</h2>
+<ul class='tight'><li><strong>Verbosity.</strong> Sets are written out at every site. Deliberate for v2 — the declaration <em>is</em> the documentation — but it won't scale past a few targets.</li><li><strong>Over-approximation.</strong> rdeps through a wide set names callers that never fire at runtime. That is the correct direction to be wrong in, and the width is chosen by the author, visible in review.</li><li><strong>Runtime check.</strong> One membership test per dyn call. Typed references would move much of it to compile time (below).</li></ul>
+<h2 id="6-roadmap">6. Roadmap</h2>
+<ol class='tight'><li>~~Named sets~~ — <strong>delivered as dispatch tables</strong> (v3): a <code>table</code> is a definition with its own hash and rdeps; sites reference it once.</li><li>~~Set inference as a <em>fix</em>~~ — <strong>delivered</strong> (v10): a may-reach analysis with one-level return summaries powers I0405 (an unquarantined call gets an inferred minimal set as a typed <code>quarantine_call</code> fix) and W0403 (a provably-narrow dyn set gets an <code>add_dyn_targets</code> fix). <code>fix --apply</code> performs both textually and converges. Inference proposes; the declaration in source remains the truth.</li><li><strong>Typed references</strong> — <em>arity delivered</em> (v4, E0209): every call form — direct, each dyn target, each table entry — is arity-checked at compile time, so a whole class of quarantine violations moved left. Richer types on refs remain future work.</li><li>~~Data-driven dispatch~~ — <strong>delivered</strong> (v3): <code>table name { "k" -&gt; target }</code> with <code>name[key](args)</code> dispatch. Keys are data; the value set is closed and graph-visible; blast radius and effects flow through the table node in two exact hops. This is the original grievance (string-bound platform code) meeting the mechanism: the string stays a string, and the graph stays exact anyway.</li><li><strong>More effects through the same door</strong> — read/files/net as declared capabilities; <code>!io</code> splits when there's a reason to split it.</li></ol>
+<h2 id="7-relation-to-prior-art">7. Relation to prior art</h2>
+<p>Rust's <code>unsafe</code> is the ergonomic model: a scoped, greppable admission with an audit story — but <code>unsafe</code> suspends checking inside, while <code>dyn</code> <em>adds</em> a declared bound; nothing is suspended. Class-hierarchy and points-to analyses recover approximate target sets externally and after the fact; here the set is source, reviewed and hashed. Effect systems and Unison's abilities type the <em>kind</em> of effect; G3 additionally bounds <em>which definitions</em> can perform it at each site. The closest analogy is gradual typing, transposed: call it <strong>gradual reference exactness</strong> — a codebase's exactness is the fraction of call edges that are singletons, <code>dyn</code> sets are the typed-untyped boundary, and migration means shrinking sets. That metric, and what programs look like as it approaches 1, is the open question worth a paper.</p>
+<h2 id="8-open-questions">8. Open questions</h2>
+<ul class='tight'><li>Do wide sets decay into "declared everything," and what review pressure or lints keep them honest?</li><li>~~Sidecar pins for dyn sets and tables~~ — <strong>answered yes and delivered</strong> (v10): each module's sidecar records per-site target hashes (<code>dyn:&lt;def&gt;#&lt;n&gt;</code>, <code>table:&lt;name&gt;</code>); a pinned target whose content changes is W0404 quarantine drift, an error under <code>--frozen</code>.</li><li>Composition: higher-order code that assembles sets from sets — is there a closed algebra of dyn sets, and is it worth its complexity?</li></ul>
+  </main>
+</div>
+
+<footer>
+  <div class="wrap frow">
+    <div>rigid — <a href="https://dudas.ai">David Dudas</a></div>
+  </div>
+</footer>
+
+<script src="site.js?v=9"></script>
+</body>
+</html>

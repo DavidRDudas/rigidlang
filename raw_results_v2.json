@@ -1,0 +1,72 @@
+{
+ "flask": {
+  "files": 0,
+  "direct": 0,
+  "method": 0,
+  "table_calls": 0,
+  "dynamic_unbounded": 0,
+  "n_tables": 0,
+  "median_table": 0,
+  "p90_table": 0,
+  "max_table": 0,
+  "sizes_hist": {},
+  "getattr_computed": 0,
+  "getattr_prefix": 0
+ },
+ "scrapy": {
+  "files": 0,
+  "direct": 0,
+  "method": 0,
+  "table_calls": 0,
+  "dynamic_unbounded": 0,
+  "n_tables": 0,
+  "median_table": 0,
+  "p90_table": 0,
+  "max_table": 0,
+  "sizes_hist": {},
+  "getattr_computed": 0,
+  "getattr_prefix": 0
+ },
+ "celery": {
+  "files": 0,
+  "direct": 0,
+  "method": 0,
+  "table_calls": 0,
+  "dynamic_unbounded": 0,
+  "n_tables": 0,
+  "median_table": 0,
+  "p90_table": 0,
+  "max_table": 0,
+  "sizes_hist": {},
+  "getattr_computed": 0,
+  "getattr_prefix": 0
+ },
+ "pygments": {
+  "files": 0,
+  "direct": 0,
+  "method": 0,
+  "table_calls": 0,
+  "dynamic_unbounded": 0,
+  "n_tables": 0,
+  "median_table": 0,
+  "p90_table": 0,
+  "max_table": 0,
+  "sizes_hist": {},
+  "getattr_computed": 0,
+  "getattr_prefix": 0
+ },
+ "httpie": {
+  "files": 0,
+  "direct": 0,
+  "method": 0,
+  "table_calls": 0,
+  "dynamic_unbounded": 0,
+  "n_tables": 0,
+  "median_table": 0,
+  "p90_table": 0,
+  "max_table": 0,
+  "sizes_hist": {},
+  "getattr_computed": 0,
+  "getattr_prefix": 0
+ }
+}

@@ -1,0 +1,12 @@
+# Python projects with long histories, chosen before looking at any result:
+# widely used, actively maintained, and none of them written by this author.
+https://github.com/psf/requests
+https://github.com/pallets/flask
+https://github.com/pallets/click
+https://github.com/psf/black
+https://github.com/encode/httpx
+https://github.com/python-attrs/attrs
+https://github.com/tiangolo/fastapi
+https://github.com/scrapy/scrapy
+https://github.com/more-itertools/more-itertools
+https://github.com/pytest-dev/pytest

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pre-registration — rigid</title>
+<meta name="description" content="The corpus and method, registered before any data was collected.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cg stroke='%232F4BD8' stroke-width='2.4' fill='none'%3E%3Cpath d='M8 24 L16 8 L24 24'/%3E%3C/g%3E%3Cg fill='%232F4BD8'%3E%3Ccircle cx='8' cy='24' r='3.4'/%3E%3Ccircle cx='16' cy='8' r='3.4'/%3E%3Ccircle cx='24' cy='24' r='3.4'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=9">
+<script>
+  try {
+    var t = localStorage.getItem("rigid-theme");
+    if (t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches)
+      document.documentElement.classList.add("dark");
+  } catch (e) {}
+</script>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap inner">
+    <a class="brand" href="index.html">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><g stroke="var(--accent)" stroke-width="2.4" fill="none"><path d="M8 24 L16 8 L24 24"/></g><g fill="var(--accent)"><circle cx="8" cy="24" r="3.4"/><circle cx="16" cy="8" r="3.4"/><circle cx="24" cy="24" r="3.4"/></g></svg>
+      <b>rigid</b><span class="ver">v1.8</span>
+    </a>
+    <select class="navpick" id="navpick" aria-label="Go to page">
+      <optgroup label="Language">
+        <option value="index.html">Home</option>
+        <option value="learn.html">Learn</option>
+        <option value="play.html">Playground</option>
+        <option value="spec.html">Specification</option>
+        <option value="tools.html">Tools</option>
+      </optgroup>
+      <optgroup label="Design">
+        <option value="paper.html">Paper</option>
+        <option value="quarantine.html">Quarantine</option>
+      </optgroup>
+      <optgroup label="Evidence">
+        <option value="evidence.html">Evidence</option>
+        <option value="benchmark.html">Benchmark</option>
+        <option value="experiment.html">Experiment</option>
+        <option value="study.html">Study</option>
+        <option value="prereg.html" selected>Pre-registration</option>
+      </optgroup>
+    </select>
+    <a class="lnk gh" href="https://github.com/DavidRDudas/rigidlang" aria-label="GitHub">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+    </a>
+    <button class="tbtn" id="theme" aria-label="Toggle dark mode">
+      <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+      <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+  </div>
+</nav>
+
+<div class="wrap doc">
+  <aside class="toc">
+    <div class="t">Pre-registration</div>
+    <ol>
+      <li><a href="#written-before-any-repository-was-fetched-or-any-number-computed">Written BEFORE any repository was fetched or any number computed.</a></li>
+      <li><a href="#purpose-fix-the-selection-rule-the-patterns-and-the-metric-in-advance">Purpose: fix the selection rule, the patterns, and the metric in advance</a></li>
+      <li><a href="#so-results-cannot-be-tuned-to-favour-the-hypothesis">so results cannot be tuned to favour the hypothesis.</a></li>
+      <li><a href="#hypothesis-h1">Hypothesis (H1)</a></li>
+      <li><a href="#falsifier-h0">Falsifier (H0)</a></li>
+      <li><a href="#selection-rule-fixed-in-advance">Selection rule (fixed in advance)</a></li>
+      <li><a href="#what-is-measured">What is measured</a></li>
+      <li><a href="#patterns-the-analyzer-will-detect-conservative-declared-now">Patterns the analyzer will detect (conservative, declared now)</a></li>
+      <li><a href="#ground-truth-cross-check">Ground truth cross-check</a></li>
+      <li><a href="#threats-to-validity-to-be-stated-in-the-writeup">Threats to validity to be stated in the writeup</a></li>
+      <li><a href="#protocol-deviation-1-recorded-before-any-data-was-seen">Protocol deviation #1 (recorded before any data was seen)</a></li>
+      <li><a href="#protocol-deviation-2-recorded-on-discovery-before-results-were-written-up">Protocol deviation #2 (recorded on discovery, before results were written up)</a></li>
+    </ol>
+  </aside>
+  <main class="doc-body">
+<h1>Exactness study — pre-registration</h1>
+<h2 id="written-before-any-repository-was-fetched-or-any-number-computed">Written BEFORE any repository was fetched or any number computed.</h2>
+<h2 id="purpose-fix-the-selection-rule-the-patterns-and-the-metric-in-advance">Purpose: fix the selection rule, the patterns, and the metric in advance</h2>
+<h2 id="so-results-cannot-be-tuned-to-favour-the-hypothesis">so results cannot be tuned to favour the hypothesis.</h2>
+<h2 id="hypothesis-h1">Hypothesis (H1)</h2>
+<p>In real string-dispatched code, the set of possible targets at a dispatch site is NARROW: median declared-set width &lt;= 4, and &gt;= 60% of all call sites are singletons (reference exactness E &gt;= 0.60).</p>
+<h2 id="falsifier-h0">Falsifier (H0)</h2>
+<p>If median dispatch width &gt; 10, or a majority of dispatch sites are wide (&gt;10 targets), the quarantine is "technically exact, practically useless" and the thesis is in trouble. This outcome WILL be reported.</p>
+<h2 id="selection-rule-fixed-in-advance">Selection rule (fixed in advance)</h2>
+<ul class='tight'><li>Source: GitHub API search, language:Python, sorted by stars, descending.</li><li>Query terms chosen to find registry/table dispatch, not chosen by me after inspection: repositories matching a code-agnostic topic search.</li><li>Take the first N=5 repositories that (a) are libraries or applications, not tutorials/awesome-lists/books, and (b) contain at least one dict-literal or registry dispatch site detected by the analyzer.</li><li>No repository is skipped after its numbers are known. If a repo is excluded, the reason is recorded here before its numbers are read.</li></ul>
+<h2 id="what-is-measured">What is measured</h2>
+<p>For each detected dispatch site: width = number of distinct callable targets reachable at that site. Call sites are classified:</p>
+<ul class='tight'><li>singleton  : a direct call to one statically-known function (width 1)</li><li>dispatch   : a call through a string-keyed table/registry (width n)</li><li>unknown    : an indirect call whose target set cannot be bounded statically (getattr with a computed name, eval, etc.)</li></ul>
+<p>Reference exactness  E = singleton_sites / (singleton + dispatch + unknown). Reported: E, the full width distribution, the count of unknown sites, and the fraction of dispatch that was statically knowable at all.</p>
+<h2 id="patterns-the-analyzer-will-detect-conservative-declared-now">Patterns the analyzer will detect (conservative, declared now)</h2>
+<p>P1  dict literal mapping str -&gt; function name, later indexed and called P2  decorator registry: @x.register("name") / @x.route("...") accumulating</p>
+<pre class="code"><code>into one dict, then dispatched</code></pre>
+<p>P3  getattr(obj, literal_prefix + var)  -&gt; bounded by methods with prefix P4  getattr/eval with a fully computed name -&gt; UNKNOWN (unbounded) Anything not matching P1-P4 is not counted as a dispatch site; coverage (sites matched / total call sites) is reported so the reader can judge.</p>
+<h2 id="ground-truth-cross-check">Ground truth cross-check</h2>
+<p>One detected dispatch cluster is migrated by hand into rigid, and <code>rigid exactness</code> is run on it. If the analyzer's width and rigid's measured width disagree, the analyzer is wrong and its numbers are reported with that caveat.</p>
+<h2 id="threats-to-validity-to-be-stated-in-the-writeup">Threats to validity to be stated in the writeup</h2>
+<ul class='tight'><li>Python != rigid: a migration may split or merge sites.</li><li>The analyzer is conservative: it under-counts dispatch it cannot see.</li><li>Author bias: the study is run by the language's author (an AI model); the pre-registration exists to constrain that, not to eliminate it.</li></ul>
+<h2 id="protocol-deviation-1-recorded-before-any-data-was-seen">Protocol deviation #1 (recorded before any data was seen)</h2>
+<p>GitHub's search API returned 0 remaining quota for unauthenticated use, so star-ranked selection was impossible. Substituted rule: a fixed list of five widely-used Python projects with plugin/registry architectures, written down here BEFORE any repository was downloaded or analyzed:</p>
+<ol class='tight'><li>pallets/flask</li><li>scrapy/scrapy</li><li>celery/celery</li><li>pygments/pygments</li><li>httpie/httpie</li></ol>
+<p>Selection was by architecture type (registry/plugin dispatch), not by any knowledge of their width distributions, which I do not have. The list is frozen: every repo on it is analyzed and reported, including any whose numbers are unfavourable.</p>
+<h2 id="protocol-deviation-2-recorded-on-discovery-before-results-were-written-up">Protocol deviation #2 (recorded on discovery, before results were written up)</h2>
+<p>The first analyzer counted every attribute call <code>x.foo()</code> as a singleton site. In Python that is receiver-polymorphic dispatch, not a static call, and counting it as singleton inflates E toward 1.0 for trivial reasons. Run 1 is DISCARDED (its numbers: E=0.977-0.998, reported here so the discard is auditable, not hidden). Analyzer v2 classifies: direct   : call to a module-level function name method   : attribute call (receiver-polymorphic; NOT singleton) table    : call through a str-keyed dict/registry (width = entries) dynimport: target named by a runtime string path (UNBOUNDED) and reports registry-size distribution separately, since registry size is what a rigid <code>table</code> would actually contain after migration.</p>
+  </main>
+</div>
+
+<footer>
+  <div class="wrap frow">
+    <div>rigid — <a href="https://dudas.ai">David Dudas</a></div>
+  </div>
+</footer>
+
+<script src="site.js?v=9"></script>
+</body>
+</html>

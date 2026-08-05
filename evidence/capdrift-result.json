@@ -1,0 +1,340 @@
+{
+ "packages": 299,
+ "versions": 3832,
+ "steps": {
+  "minor": 942,
+  "patch": 2056,
+  "major": 535
+ },
+ "widened": {
+  "major": 36,
+  "minor": 15,
+  "patch": 11
+ },
+ "gains": {
+  "major": {
+   "time": 7,
+   "rand": 12,
+   "proc": 8,
+   "fs": 6,
+   "env": 12
+  },
+  "minor": {
+   "net": 3,
+   "env": 4,
+   "rand": 1,
+   "proc": 2,
+   "fs": 2,
+   "time": 3,
+   "install-hook": 1
+  },
+  "patch": {
+   "rand": 4,
+   "time": 4,
+   "env": 6,
+   "fs": 3,
+   "net": 1,
+   "proc": 1
+  }
+ },
+ "examples": {
+  "major": [
+   {
+    "package": "eslint",
+    "from": "10.0.2",
+    "to": "9.39.4",
+    "gained": [
+     "time"
+    ]
+   },
+   {
+    "package": "eslint",
+    "from": "10.6.0",
+    "to": "9.39.5",
+    "gained": [
+     "time"
+    ]
+   },
+   {
+    "package": "axios",
+    "from": "0.30.3",
+    "to": "1.13.6",
+    "gained": [
+     "rand"
+    ]
+   },
+   {
+    "package": "axios",
+    "from": "0.31.0",
+    "to": "1.15.1",
+    "gained": [
+     "rand"
+    ]
+   },
+   {
+    "package": "axios",
+    "from": "0.31.1",
+    "to": "1.15.2",
+    "gained": [
+     "rand"
+    ]
+   },
+   {
+    "package": "axios",
+    "from": "0.32.0",
+    "to": "1.16.1",
+    "gained": [
+     "rand"
+    ]
+   },
+   {
+    "package": "axios",
+    "from": "0.33.0",
+    "to": "1.18.0",
+    "gained": [
+     "rand"
+    ]
+   },
+   {
+    "package": "chai",
+    "from": "4.5.0",
+    "to": "5.1.2",
+    "gained": [
+     "rand",
+     "time"
+    ]
+   },
+   {
+    "package": "socket.io",
+    "from": "2.5.1",
+    "to": "4.8.0",
+    "gained": [
+     "time"
+    ]
+   },
+   {
+    "package": "mongoose",
+    "from": "9.7.2",
+    "to": "8.24.1",
+    "gained": [
+     "proc",
+     "rand"
+    ]
+   },
+   {
+    "package": "mongoose",
+    "from": "9.7.4",
+    "to": "7.8.11",
+    "gained": [
+     "proc",
+     "rand"
+    ]
+   },
+   {
+    "package": "mongoose",
+    "from": "9.8.1",
+    "to": "8.24.2",
+    "gained": [
+     "proc",
+     "rand"
+    ]
+   }
+  ],
+  "minor": [
+   {
+    "package": "typescript",
+    "from": "5.4.5",
+    "to": "5.5.2",
+    "gained": [
+     "net"
+    ]
+   },
+   {
+    "package": "axios",
+    "from": "1.13.6",
+    "to": "1.14.0",
+    "gained": [
+     "env"
+    ]
+   },
+   {
+    "package": "dotenv",
+    "from": "17.0.1",
+    "to": "17.1.0",
+    "gained": [
+     "rand"
+    ]
+   },
+   {
+    "package": "depd",
+    "from": "0.0.1",
+    "to": "0.1.0",
+    "gained": [
+     "proc"
+    ]
+   },
+   {
+    "package": "depd",
+    "from": "0.2.0",
+    "to": "0.3.0",
+    "gained": [
+     "env"
+    ]
+   },
+   {
+    "package": "etag",
+    "from": "1.1.0",
+    "to": "1.2.0",
+    "gained": [
+     "fs"
+    ]
+   },
+   {
+    "package": "cookie",
+    "from": "1.0.2",
+    "to": "1.1.0",
+    "gained": [
+     "time"
+    ]
+   },
+   {
+    "package": "router",
+    "from": "2.0.0",
+    "to": "2.1.0",
+    "gained": [
+     "net"
+    ]
+   },
+   {
+    "package": "events",
+    "from": "0.1.1",
+    "to": "0.2.0",
+    "gained": [
+     "install-hook"
+    ]
+   },
+   {
+    "package": "glob-parent",
+    "from": "3.0.1",
+    "to": "3.1.0",
+    "gained": [
+     "env"
+    ]
+   },
+   {
+    "package": "@eslint/config-helpers",
+    "from": "0.5.5",
+    "to": "0.6.0",
+    "gained": [
+     "fs"
+    ]
+   },
+   {
+    "package": "diff",
+    "from": "5.1.0",
+    "to": "5.2.0",
+    "gained": [
+     "time"
+    ]
+   }
+  ],
+  "patch": [
+   {
+    "package": "chai",
+    "from": "5.3.1",
+    "to": "5.3.2",
+    "gained": [
+     "rand",
+     "time"
+    ]
+   },
+   {
+    "package": "@humanwhocodes/retry",
+    "from": "0.3.0",
+    "to": "0.3.1",
+    "gained": [
+     "rand"
+    ]
+   },
+   {
+    "package": "tinyglobby",
+    "from": "0.2.10",
+    "to": "0.2.11",
+    "gained": [
+     "env",
+     "time"
+    ]
+   },
+   {
+    "package": "tinyglobby",
+    "from": "0.2.14",
+    "to": "0.2.15",
+    "gained": [
+     "fs"
+    ]
+   },
+   {
+    "package": "json5",
+    "from": "2.0.0",
+    "to": "2.0.1",
+    "gained": [
+     "rand"
+    ]
+   },
+   {
+    "package": "empathic",
+    "from": "0.0.0",
+    "to": "0.0.1",
+    "gained": [
+     "env",
+     "fs"
+    ]
+   },
+   {
+    "package": "@babel/code-frame",
+    "from": "7.24.1",
+    "to": "7.24.2",
+    "gained": [
+     "env"
+    ]
+   },
+   {
+    "package": "@babel/helper-compilation-targets",
+    "from": "7.25.7",
+    "to": "7.25.9",
+    "gained": [
+     "env"
+    ]
+   },
+   {
+    "package": "glob",
+    "from": "13.0.1",
+    "to": "13.0.2",
+    "gained": [
+     "env",
+     "fs",
+     "net",
+     "rand",
+     "time"
+    ]
+   },
+   {
+    "package": "sift",
+    "from": "15.1.1",
+    "to": "15.1.2",
+    "gained": [
+     "env",
+     "proc"
+    ]
+   },
+   {
+    "package": "ajv-formats",
+    "from": "3.0.0",
+    "to": "3.0.1",
+    "gained": [
+     "time"
+    ]
+   }
+  ]
+ }
+}

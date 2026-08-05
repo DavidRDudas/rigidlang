@@ -1,0 +1,19 @@
+{
+  "format": "rigid-bind/0",
+  "definitions": {
+    "checked_div": "sha256:d9968d2c1bd2714d5811bf2561751e167783445554837390e6bff736d7abae11",
+    "fib_iter": "sha256:6a3f61a4f3efc053d888ca5c5000f18168f4e19fffed09422f7f732fcb94dd9a",
+    "main": "sha256:82d315a26f06af56c71e02950f29607566c6e182e11e7e95aa96da2ea4c2ec75",
+    "safe_div": "sha256:0e8e1c6a181f13a47c0e203419c765be3b9789e706180623bbe3ff04d5e3601b",
+    "sum_to": "sha256:a9b04782a7d4b64edea6257d849072aab510257906e7b9e9c5ba691ba7c96dc3",
+    "test_builtin_catch": "sha256:96607c8592ffde4106846e419bcfacb08ffbb6a2eab86f6c1d8c3416cf8bc03a",
+    "test_fib": "sha256:edf0cf7d6d45f0a9fdc784a376982f1724b9400a57ead88811203ff440fcfd4f",
+    "test_loop_let": "sha256:eeeff210cf5dd83a8c187c99088c23cf57539a3ae5b80ed8e4bbafa09c92e2d5",
+    "test_payload": "sha256:fba7304a461965178212431cd63c7e1c4b32f88c620f58c3607fdca94fb55ea8",
+    "test_safe": "sha256:6f9a90a03b9472caaf1204952f6cf6e31a7f4e3c3d9527c66049898caf83a8bf",
+    "test_sum": "sha256:ebf3f2ecd99dfdd7c8c3b97f65dc41d078ca7122c06e2d18123938375aa1ca1f"
+  },
+  "quarantine": {},
+  "module_hash": "sha256:d329884b3ca96e5886e247ade1237825bf7467400c229e6990efa2196cff57c4",
+  "references": {}
+}

@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>rigid specification — grammar, canonical form, and diagnostics</title>
+<meta name="description" content="The rigid language reference: lexical structure, grammar, canonical encoding and hashing, the binding sidecar and its reconciliation rules, diagnostics, and the CLI.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cg stroke='%232F4BD8' stroke-width='2.4' fill='none'%3E%3Cpath d='M8 24 L16 8 L24 24'/%3E%3C/g%3E%3Cg fill='%232F4BD8'%3E%3Ccircle cx='8' cy='24' r='3.4'/%3E%3Ccircle cx='16' cy='8' r='3.4'/%3E%3Ccircle cx='24' cy='24' r='3.4'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=9">
+<script>
+  try {
+    var t = localStorage.getItem("rigid-theme");
+    if (t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches)
+      document.documentElement.classList.add("dark");
+  } catch (e) {}
+</script>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap inner">
+    <a class="brand" href="index.html">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><g stroke="var(--accent)" stroke-width="2.4" fill="none"><path d="M8 24 L16 8 L24 24"/></g><g fill="var(--accent)"><circle cx="8" cy="24" r="3.4"/><circle cx="16" cy="8" r="3.4"/><circle cx="24" cy="24" r="3.4"/></g></svg>
+      <b>rigid</b><span class="ver">v1.8</span>
+    </a>
+    <select class="navpick" id="navpick" aria-label="Go to page">
+      <optgroup label="Language">
+        <option value="index.html">Home</option>
+        <option value="learn.html">Learn</option>
+        <option value="play.html">Playground</option>
+        <option value="spec.html" selected>Specification</option>
+        <option value="tools.html">Tools</option>
+      </optgroup>
+      <optgroup label="Design">
+        <option value="paper.html">Paper</option>
+        <option value="quarantine.html">Quarantine</option>
+      </optgroup>
+      <optgroup label="Evidence">
+        <option value="evidence.html">Evidence</option>
+        <option value="benchmark.html">Benchmark</option>
+        <option value="experiment.html">Experiment</option>
+        <option value="study.html">Study</option>
+        <option value="prereg.html">Pre-registration</option>
+      </optgroup>
+    </select>
+    <a class="lnk gh" href="https://github.com/DavidRDudas/rigidlang" aria-label="GitHub">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+    </a>
+    <button class="tbtn" id="theme" aria-label="Toggle dark mode">
+      <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+      <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+  </div>
+</nav>
+
+<div class="wrap doc">
+  <aside class="toc">
+    <div class="t">Specification</div>
+    <ol>
+      <li><a href="#thesis">Thesis</a></li>
+      <li class="grp" role="presentation">Surface language</li>
+      <li><a href="#lexical">Lexical structure</a></li>
+      <li><a href="#grammar">Grammar</a></li>
+      <li><a href="#values">Values and operators</a></li>
+      <li><a href="#effects">Effects</a></li>
+      <li><a href="#dynamism">Dynamism</a></li>
+      <li class="grp" role="presentation">Identity</li>
+      <li><a href="#canonical">Canonical form</a></li>
+      <li><a href="#encoding">Encoding table</a></li>
+      <li><a href="#invariants">Invariants</a></li>
+      <li><a href="#cycles">Cycles</a></li>
+      <li class="grp" role="presentation">Resolution</li>
+      <li><a href="#sidecar">The binding sidecar</a></li>
+      <li><a href="#reconciliation">Reconciliation rules</a></li>
+      <li class="grp" role="presentation">Extensions</li>
+      <li><a href="#memo">memo</a></li>
+      <li><a href="#temporal">Temporal references</a></li>
+      <li><a href="#externs">Externs</a></li>
+      <li class="grp" role="presentation">Reference</li>
+      <li><a href="#semdiff">Semantic diff</a></li>
+      <li><a href="#merge">Merge</a></li>
+      <li><a href="#diagnostics">Diagnostics</a></li>
+      <li><a href="#cli">CLI</a></li>
+    </ol>
+  </aside>
+
+  <main class="doc-body">
+    <h1>rigid specification</h1>
+    <p class="lead">The language reference for rigid v1.8. If you are learning the language, start with the
+      <a href="learn.html">tutorial</a> — this page is the normative description.</p>
+    <div class="note">
+      <span class="lbl">status</span>
+      <p>Named after Kripke's <em>rigid designator</em>, a reference that picks out the same thing in every
+        possible world — which is what a hash-pinned definition is. Encoding tags and diagnostic codes are
+        frozen and append-only; everything else is subject to change while the identity model is validated.</p>
+    </div>
+
+    <h2 id="thesis">1. Thesis</h2>
+    <p><strong>Text is authoritative for content. The derived graph is authoritative for identity. Ambiguity
+      is a compile error.</strong></p>
+    <p>A definition's identity is the SHA-256 of its canonical form, in which bound names are erased and every
+      reference to another definition is that definition's hash. Names are a human-facing metadata layer. The
+      compiler maintains an exact reference graph as a byproduct of compilation — never reconstructed, never
+      approximate — and refuses to let a name silently change meaning.</p>
+    <p>Design ordering, used to settle every dispute:
+      <strong>exactness &gt; interop &gt; ergonomics &gt; expressiveness</strong>. Interop is why text, files,
+      Git, and mainstream syntax survive. Exactness is why silent rebinding does not.</p>
+
+    <h2 id="lexical">2. Lexical structure</h2>
+    <p>Source files are UTF-8 with the extension <code>.rg</code>. One file is one module; the module id is
+      its path relative to the workspace root, with forward slashes. Comments run from <code>//</code> to the
+      end of the line and are preserved by <code>rigid fmt</code>, though they never affect identity.</p>
+    <p>String literals are double-quoted and support the escapes <code>\n</code>, <code>\t</code>,
+      <code>\r</code>, <code>\e</code>, <code>\"</code>, and <code>\\</code>. Integer literals are decimal and
+      64-bit signed. A digit run continues into a <strong>float</strong> only when a <code>.</code> is
+      followed by another digit, so <code>3.14</code> is a float while <code>x.field</code> is a field
+      access.</p>
+    <h3>Reserved words</h3>
+    <p>Keywords:</p>
+<pre class="code"><code>fn  let  return  while  if  else  import  from  table  dyn  memo  extern</code></pre>
+    <p>Builtin names are reserved words too, so they cannot be used as identifiers:</p>
+<pre class="code"><code>print  input  read_file  write_file      // io
+len  push  str  int  float  substr  chars  join // pure
+fail  try                                // errors</code></pre>
+
+    <h2 id="grammar">3. Grammar</h2>
+    <p>Deliberately tiny: definitions, calls, imports, arithmetic, and <code>if</code>-expressions.</p>
+<pre class="code"><code>module    := item* EOF
+item      := import | fndef | tabledef | externdef
+
+import    := "import" "{" ident ("," ident)* "}" "from" STRING ";"
+fndef     := "memo"? "fn" ident "(" (ident ("," ident)*)? ")" effects? "{" stmt* "}"
+externdef := "extern" "fn" ident "(" (ident ("," ident)*)? ")" effects? "=" STRING ";"
+effects   := ("!" capability)+                        -- io fs net env time rand proc
+tabledef  := "table" ident "{" (STRING "-&gt;" ident ("," STRING "-&gt;" ident)* ","?)? "}"
+
+stmt      := "let" ident "=" expr ";"
+           | ident "=" expr ";"                       -- assignment, locals only
+           | "while" "(" expr ")" "{" stmt* "}"
+           | "for" "(" ident "in" expr ")" "{" stmt* "}"
+           | ifstmt
+           | "return" expr ";"
+ifstmt    := "if" "(" expr ")" "{" stmt* "}"          -- else is optional here
+             ("else" (ifstmt | "{" stmt* "}"))?
+           | expr ";"
+
+expr      := cmp
+cmp       := add (("=="|"!="|"&lt;"|"&gt;"|"&lt;="|"&gt;=") add)*
+add       := mul (("+"|"-") mul)*
+mul       := unary (("*"|"/"|"%") unary)*
+unary     := "-" unary | "&amp;" ident | dyncall | temporal
+           | "print" "(" expr ")" | call
+
+dyncall   := "dyn" "{" ident ("," ident)* "}" "(" expr ("," expr)* ")"
+temporal  := "@" STRING "(" (expr ("," expr)*)? ")"
+
+call      := ident "(" (expr ("," expr)*)? ")"        -- direct calls only
+           | ident "[" expr "]" ("(" args ")")?       -- table dispatch
+           | ident
+           | primary
+
+primary   := INT | STRING | "(" expr ")"
+           | "[" (expr ("," expr)* ","?)? "]"                      -- list
+           | "{" (ident ":" expr ("," ident ":" expr)* ","?)? "}"  -- record
+           | "if" "(" expr ")" expr "else" expr
+           | builtin
+
+postfix   := atom ("." ident | "[" expr "]")*         -- field access, indexing</code></pre>
+    <p><code>if</code> appears twice above because it is two constructs. The parser tells them apart by
+      what follows the condition: a <code>{</code> opens a statement block whose <code>else</code> is
+      optional; anything else is the expression form, whose <code>else</code> is mandatory because it must
+      produce a value.</p>
+    <p>Note what is absent: there is no <code>break</code>, no <code>continue</code>, and no
+      <code>&amp;&amp;</code> or <code>||</code>. Named function definitions may not nest — a
+      <code>fn(x) { … }</code> lambda is lifted out to the top level rather than nested (§20).</p>
+
+    <h2 id="values">4. Values and operators</h2>
+    <p>Six value kinds: <strong>Int</strong>, <strong>Float</strong>, <strong>Str</strong>,
+      <strong>List</strong>, <strong>Record</strong>, and <strong>Fun</strong> (a reference created by
+      <code>&amp;name</code>).</p>
+    <table class="cheat">
+      <thead><tr><th>Operators</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td>+ - * / %</td><td>Arithmetic. Two integers stay integral and division truncates toward
+          zero; a float on either side promotes the other. Integer division by zero is an error, float
+          division by zero an infinity.</td></tr>
+        <tr><td>+</td><td>Also concatenates two strings, or two lists.</td></tr>
+        <tr><td>== != &lt; &gt; &lt;= &gt;=</td><td>Comparison. Yields the integer <code>1</code> or <code>0</code>.
+          Equality compares numerically across Int and Float, so <code>1 == 1.0</code>.</td></tr>
+        <tr><td>xs[i]</td><td>Index a list, a string (yielding a one-character string), or a record by key.</td></tr>
+        <tr><td>r.field</td><td>Record field access.</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:1rem"><code>float(e)</code> widens an integer or parses a string; <code>int(e)</code>
+      truncates toward zero. Two integers are never widened silently — that would lose precision above
+      2<sup>53</sup>, which is the kind of quiet wrongness this language exists to refuse. Before hashing,
+      <code>-0.0</code> normalizes to <code>+0.0</code> and every NaN to one quiet NaN, because content
+      addressing cannot have two keys that compare equal or one that does not equal itself. The JS target
+      maps <code>Int</code> to <strong>BigInt</strong> and <code>Float</code> to a plain number, because
+      JavaScript's single number type is a float64 — using it for both silently rounded 64-bit integers, so
+      node answered <code>9007199254740993 + 1</code> with <code>9007199254740992</code>.</p>
+    <p>There is no boolean type: <code>0</code> is false and any other integer is
+      true. Records are immutable maps whose identity ignores field order — the canonical form sorts fields by
+      name, so two differently-ordered literals hash identically. Locals are the only mutable storage;
+      definitions are immutable, and assigning to one is <code>E0210</code>.</p>
+    <p>Scope is flat per function: parameters, then <code>let</code>s, numbered in binding order, innermost
+      match wins. A <code>let</code> inside a loop body keeps one stable slot across iterations, and reading it
+      after a loop that never ran yields <code>0</code>.</p>
+    <h3>Value domains</h3>
+    <p>rigid has no type system, but the four value kinds are distinguishable and the operators that
+      accept them are not interchangeable. Three things are inferred: a <strong>parameter's</strong>
+      domain, from uses admitting exactly one (<code>-</code>, <code>*</code>, <code>/</code>,
+      <code>%</code> and ordering are integer-only; <code>.field</code> needs a record;
+      <code>substr</code>/<code>chars</code> need a string; <code>push</code>/<code>join</code> need a
+      list); a <strong>local's</strong> domain, from its initializer; and a definition's
+      <strong>return</strong> domain, when every <code>return</code> agrees.</p>
+    <p>Three things are checked, and only where the domain is <em>known</em>: an argument at a direct
+      call, an operand of an integer-only operator, and the base of a field access
+      (<code>E0212</code>). Everything else infers nothing and reports nothing, so a parameter with no
+      domain-forcing use stays polymorphic and a conflict silences a slot rather than failing it.
+      Domains are inferred, never declared, and never enter canonical form.</p>
+
+    <h3>Errors as values</h3>
+    <p><code>fail(v)</code> raises any value. <code>try(e)</code> evaluates <code>e</code> and yields
+      <code>{ ok: 1, value: v }</code> or <code>{ ok: 0, error: payload }</code>. Every builtin runtime error —
+      division by zero, out-of-bounds index, a failed <code>int()</code> parse, a missing table key, a
+      quarantine violation — is catchable the same way.</p>
+    <h3>Tests</h3>
+    <p>A definition named <code>test_*</code> takes no arguments, must be pure, and passes by returning a
+      nonzero value. Results are cached keyed by the test's content hash; since a hash pins the whole
+      dependency cone, a cache hit is a proof that the rerun would be identical.</p>
+
+    <h2 id="effects">5. Effects and capabilities</h2>
+    <p>A definition declares the parts of the outside world it may touch:</p>
+<pre class="code"><code>!io   !fs   !net   !env   !time   !rand   !proc</code></pre>
+    <p>Order is free; the set is canonical, and <code>fmt</code> renders it in the order above.
+      <code>!io</code> is rigid's own console and file builtins — <code>print</code>, <code>input</code>,
+      <code>read_file</code>, <code>write_file</code> — and keeps exactly the meaning it has always had. The
+      rest describe the <em>host</em> boundary and are declared on <code>extern</code>.</p>
+    <p>Capabilities are part of canonical form, so they are part of identity: a definition that gains
+      <code>!net</code> gets a new hash, and an importer's sidecar sees drift. The sidecar also records the
+      capability set at the moment of pinning, which is what lets the drift say <em>which</em> kind it is —
+      <code>W0405</code> names the widening, and <code>--frozen</code> refuses it. A dependency that starts
+      reaching the network is a build failure, not an audit finding. <code>rigid caps</code> lists the whole
+      set with the externs that supply it, complete by construction rather than by search.</p>
+    <p>The rule is one line: a definition must declare every capability it can reach. A violation is
+      <code>E0207</code>, naming the capability that is missing. Propagation flows
+      through dispatch tables and <code>dyn</code> sites — a site is <code>!io</code> if any declared target
+      is — so a pure-looking dispatcher over a table containing one effectful handler is rejected. Temporal
+      calls are always <code>!io</code>.</p>
+
+    <h2 id="dynamism">6. Quarantined dynamism</h2>
+    <p><code>&amp;name</code> creates a first-class reference; creating one is a static edge in the graph.
+      Reference values may be invoked only through a declared quarantine:</p>
+<pre class="code"><code class="rg">dyn { f, g }(callee, args...)</code></pre>
+    <p>Each target resolves at compile time and is an edge at that site. At runtime the callee must be a
+      member of the declared set, or evaluation stops with an error naming the value and the set. Calling a
+      value outside a <code>dyn</code> block is <code>E0204</code>, and the compiler emits the inferred set as
+      an <code>I0405</code> hint.</p>
+    <h3>Dispatch tables</h3>
+    <p>A <code>table</code> is the named, data-keyed form of the same idea, and it is a
+      <strong>definition</strong>: it hashes over its key-sorted entries, appears in <code>deps</code> and
+      <code>rdeps</code>, and rides the sidecar rules when imported. <code>name[key](args...)</code>
+      dispatches through it. The site's static edge is the table; the table's edges are its whole value set, so
+      blast radius and effects flow through in two exact hops.</p>
+    <p>Keys are ordinary runtime data; the value set is closed. A missing key fails at the boundary and lists
+      the available keys. Targets must be functions — direct calls of a table, dispatch through a non-table,
+      and non-function targets are all <code>E0208</code>.</p>
+    <p>Argument counts are checked at compile time at every call form: direct calls, every declared
+      <code>dyn</code> target, and every table entry (<code>E0209</code>). Arity is the first type in the
+      language, admitted because it narrows the quarantine — violations that would have been runtime
+      membership failures become compile errors.</p>
+
+    <h2 id="canonical">7. Canonical form</h2>
+    <p>Resolution precedes hashing. Every name occurrence resolves to exactly one binding:</p>
+    <ul class="tight">
+      <li><strong>Local(slot)</strong> — parameters then <code>let</code>s, numbered in binding order per
+        function. A <code>let</code> name is bound <em>after</em> its initializer.</li>
+      <li><strong>Def(id)</strong> — a top-level definition: same module first, then imports.</li>
+      <li>Anything else is <code>E0201</code> (unresolved) or <code>E0203</code> (ambiguous — an imported name
+        colliding with a module-local definition, or a duplicate definition).</li>
+    </ul>
+    <p><code>canon(def)</code> is then a tagged byte string, and
+      <code>hash(def) = SHA-256(canon(def))</code>, computed in dependency post-order so every reference
+      payload is already available.</p>
+
+    <h2 id="encoding">8. Encoding table</h2>
+    <p>Tags are frozen. Extend only by appending.</p>
+    <div class="tbl-wrap">
+      <table class="cmp">
+        <thead><tr><th style="width:5.5rem">Tag</th><th style="width:9rem">Node</th><th>Payload</th></tr></thead>
+        <tbody>
+          <tr><td>0x01</td><td>Int</td><td class="other">i64 big-endian</td></tr>
+          <tr><td>0x2C</td><td>TimeCall</td><td class="other">u32 length + hash string + u32 arg count + args — <code>@"hash"(…)</code></td></tr>
+          <tr><td>0x2F</td><td>FloatConv</td><td class="other">operand — <code>float(e)</code></td></tr>
+          <tr><td>0x30</td><td>IfStmt</td><td class="other">cond + u32 then-count + then + u32 else-count + else</td></tr>
+          <tr><td>0x31</td><td>For</td><td class="other">u32 loop slot + iterable + u32 stmt count + stmts</td></tr>
+          <tr><td>0x32</td><td>Closure</td><td class="other">reference to the lifted definition + u32 capture count + capture slots</td></tr>
+          <tr><td>0x2E</td><td>Float</td><td class="other">8 bytes, canonical IEEE-754 (−0.0 → +0.0, every NaN → one quiet NaN)</td></tr>
+          <tr><td>0x2D</td><td>FnEff header</td><td class="other">u32 capability mask + the 0x20 payload; used for any set other than <code>{}</code> or <code>{io}</code>, so pre-capability hashes never moved</td></tr>
+          <tr><td>0x02</td><td>Str</td><td class="other">u32 length + UTF-8 bytes</td></tr>
+          <tr><td>0x03</td><td>Local</td><td class="other">u32 slot</td></tr>
+          <tr><td>0x04</td><td>Ref</td><td class="other">32-byte hash of the target definition</td></tr>
+          <tr><td>0x05</td><td>SelfRef</td><td class="other">— (direct self-recursion)</td></tr>
+          <tr><td>0x06</td><td>Call</td><td class="other">target (0x04/0x05 form) + u32 argc + args</td></tr>
+          <tr><td>0x07</td><td>Binop</td><td class="other">u8 op tag + lhs + rhs</td></tr>
+          <tr><td>0x08</td><td>If</td><td class="other">cond + then + else</td></tr>
+          <tr><td>0x09</td><td>Neg</td><td class="other">operand</td></tr>
+          <tr><td>0x0A</td><td>CREF</td><td class="other">u32 ordinal (intra-component reference)</td></tr>
+          <tr><td>0x0B</td><td>FunRef</td><td class="other">target reference (0x04/0x05/0x0A form)</td></tr>
+          <tr><td>0x0C</td><td>DynCall</td><td class="other">u32 set size + set (sorted by encoded bytes) + callee + u32 argc + args</td></tr>
+          <tr><td>0x0D</td><td>Print</td><td class="other">operand (io builtin)</td></tr>
+          <tr><td>0x0E</td><td>TDispatch</td><td class="other">table ref + key expr + u8 has-args (+ u32 argc + args)</td></tr>
+          <tr><td>0x0F</td><td>LocalIndex</td><td class="other">local slot + key expr</td></tr>
+          <tr><td>0x10</td><td>Let</td><td class="other">initializer (bound name erased; slot is positional)</td></tr>
+          <tr><td>0x11</td><td>Return</td><td class="other">operand</td></tr>
+          <tr><td>0x12</td><td>ExprStmt</td><td class="other">operand</td></tr>
+          <tr><td>0x13</td><td>List</td><td class="other">u32 count + elements</td></tr>
+          <tr><td>0x14</td><td>Len</td><td class="other">operand</td></tr>
+          <tr><td>0x15</td><td>Push</td><td class="other">list + element</td></tr>
+          <tr><td>0x16</td><td>Record</td><td class="other">u32 count + name-sorted (u32 len + name + value)</td></tr>
+          <tr><td>0x17</td><td>Get</td><td class="other">base + u32 len + field name</td></tr>
+          <tr><td>0x18</td><td>Index</td><td class="other">base + key</td></tr>
+          <tr><td>0x19</td><td>Input</td><td class="other">— (io builtin)</td></tr>
+          <tr><td>0x1A</td><td>Assign</td><td class="other">u32 slot + value</td></tr>
+          <tr><td>0x1B</td><td>While</td><td class="other">cond + u32 stmt count + stmts</td></tr>
+          <tr><td>0x1C</td><td>Fail</td><td class="other">payload expression</td></tr>
+          <tr><td>0x1D</td><td>Try</td><td class="other">operand</td></tr>
+          <tr><td>0x1E</td><td>Str()</td><td class="other">operand (int → decimal string)</td></tr>
+          <tr><td>0x1F</td><td>Int()</td><td class="other">operand (parse; failure recoverable)</td></tr>
+          <tr><td>0x20</td><td>Fn header</td><td class="other">u32 param count + u32 stmt count + stmts (pure)</td></tr>
+          <tr><td>0x21</td><td>Component</td><td class="other">u32 count + members in order (SCC)</td></tr>
+          <tr><td>0x22</td><td>Member</td><td class="other">component_hash + u32 ordinal</td></tr>
+          <tr><td>0x23</td><td>FnIo header</td><td class="other">as 0x20, for <code>!io</code> definitions</td></tr>
+          <tr><td>0x24</td><td>Table def</td><td class="other">u32 count + key-sorted entries (u32 keylen + key + target ref)</td></tr>
+          <tr><td>0x25</td><td>Substr</td><td class="other">string + start + count</td></tr>
+          <tr><td>0x26</td><td>Chars</td><td class="other">operand</td></tr>
+          <tr><td>0x27</td><td>Join</td><td class="other">list + separator</td></tr>
+          <tr><td>0x28</td><td>ReadFile</td><td class="other">path (io; missing file recoverable)</td></tr>
+          <tr><td>0x29</td><td>WriteFile</td><td class="other">path + contents (io; returns contents)</td></tr>
+          <tr><td>0x2A</td><td>Module</td><td class="other">u32 count + sorted member hashes (names excluded)</td></tr>
+          <tr><td>0x2B</td><td>Extern</td><td class="other">u32 arity + u8 io + u32 hostlen + host path bytes</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="invariants">9. Invariants</h2>
+    <p>What identity means, stated as guarantees:</p>
+    <ul class="bare">
+      <li><b>Renaming does not change a hash.</b> This holds for a parameter, a <code>let</code>, a definition,
+        or anything a definition references.</li>
+      <li><b>Changing structure does change a hash.</b> Literals, operators, or the <em>content</em> of
+        anything transitively referenced. A hash pins the exact implementation and its whole dependency cone.</li>
+      <li><b>Whitespace and comments never matter.</b> They do not survive parsing.</li>
+      <li><b>Field order and declaration order never matter.</b> Records sort by field name; module identity
+        sorts member hashes and excludes names.</li>
+    </ul>
+    <p style="margin-top:1rem">The corollary that surprises people: names that are <em>data</em> rather than
+      <em>bindings</em> are part of identity. Record field names and table keys are hashed; definition,
+      parameter, and <code>let</code> names are not.</p>
+
+    <h2 id="cycles">10. Cycles</h2>
+    <p>Direct self-recursion in a singleton component uses <code>SelfRef</code> (0x05). Mutual recursion is
+      legal: the reference graph is condensed into strongly-connected components (Kosaraju) and hashed in
+      dependency order.</p>
+    <p>For a multi-member component every intra-component reference encodes as <code>CREF</code> (0x0A) plus a
+      u32 ordinal. Member ordering must itself be name-free, so members are first encoded with placeholder
+      ordinals (<code>0xFFFFFFFF</code>) and sorted by those bytes. Component bytes are then
+      <code>0x21 + u32 count + members in order</code> with real ordinals;
+      <code>component_hash = SHA-256(component bytes)</code>; and each member's identity is
+      <code>SHA-256(0x22 + component_hash + u32 ordinal)</code>.</p>
+    <div class="note warn">
+      <span class="lbl">known leak</span>
+      <p>Two <em>structurally identical</em> members of one cycle have identical placeholder encodings, so
+        their ordering falls back to (module, name). The name layer touches identity for exactly that
+        pathological case. Documented rather than hidden; revisit in v2.</p>
+    </div>
+
+    <h2 id="sidecar">11. The binding sidecar</h2>
+    <p>Each module carries <code>&lt;module&gt;.rg.bind.json</code>, a <strong>resolution lockfile</strong>. It
+      does not pin content — content evolves in text, where it belongs. It pins <strong>which definition each
+      imported name means</strong>, by hash. It is diffable, mergeable, reviewable, deliberately shaped like
+      <code>Cargo.lock</code>, and deliberately per-module so parallel edits do not collide in one giant file.</p>
+<pre class="code"><code>{
+  "format": "rigid-bind/0",
+  "definitions": { "norm": "sha256:…", "fib": "sha256:…" },
+  "references": {
+    "clamp": { "target": "util.rg#clamp", "hash": "sha256:…" }
+  }
+}</code></pre>
+    <p><code>definitions</code> lists the module's own definitions and is informational: it makes
+      within-module drift visible in ordinary diffs and feeds tooling. <code>references</code> is normative.</p>
+    <p>The import statement names the <em>target module</em>; the sidecar pins the <em>identity</em> of what
+      the name bound to there. Text can change freely; the sidecar is how the compiler distinguishes a name's
+      <strong>meaning</strong> moving from its target being <strong>edited</strong>.</p>
+
+    <h2 id="reconciliation">12. Reconciliation rules</h2>
+    <p>For each imported name <code>n</code> pinned as hash <code>h</code>, checked against the target module's
+      current name→hash table:</p>
+    <div class="tbl-wrap">
+      <table class="cmp">
+        <thead><tr><th style="width:3rem">Rule</th><th style="width:30%">Condition</th><th>Outcome</th></tr></thead>
+        <tbody>
+          <tr><td>R1</td><td class="other"><code>n</code> present, hash == <code>h</code></td><td class="rg">OK.</td></tr>
+          <tr><td>R2</td><td class="other"><code>n</code> present, hash != <code>h</code>, and <code>h</code> still exists under another name</td><td class="rg"><strong>E0202 resolution-changed.</strong> The name was re-used for a different definition. Hard error; never silently rebound. Typed fixes: rename the reference to the pin's new name, or explicitly <code>rebind</code>.</td></tr>
+          <tr><td>R3</td><td class="other"><code>n</code> present, hash != <code>h</code>, <code>h</code> gone</td><td class="rg"><strong>W0401 drift.</strong> The definition was edited in place. Repinned in dev mode; an error under <code>--frozen</code>.</td></tr>
+          <tr><td>R4</td><td class="other"><code>n</code> absent, <code>h</code> exists under another name</td><td class="rg"><strong>E0201 + typed <code>rename_reference</code> fix.</strong> The definition was renamed, and a machine can apply the fix.</td></tr>
+          <tr><td>R5</td><td class="other"><code>n</code> absent, <code>h</code> gone</td><td class="rg">E0201 plain.</td></tr>
+          <tr><td>R6</td><td class="other">no pin yet</td><td class="rg">Pin now; I0402 info.</td></tr>
+          <tr><td>R7</td><td class="other">the module has unresolved references</td><td class="rg">Its sidecar is left untouched. Rewriting it would destroy the old-name-to-hash evidence that makes rename recovery possible.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:1rem">R2 and R4 are the point of the language. R2 is the <em>silent-rebind
+      refusal</em>: in a name-bound language, re-using a name quietly changes the meaning of every existing
+      reference; here it cannot. R4 is <em>rename detection by identity</em>: the compiler recognises the
+      renamed definition by hash and hands back a mechanical fix. I0406 applies the same recovery to
+      same-module renames.</p>
+    <p><code>rigid fix --apply</code> mechanically applies <code>rename_reference</code> fixes — only
+      occurrences the resolver marked broken, so an unrelated local sharing the name is untouched — and
+      iterates until <code>check</code> converges. <code>rebind</code> fixes are never auto-applied: accepting
+      a changed meaning is a decision, so it is its own command. Under <code>--frozen</code>, any required
+      sidecar write is an error, so the build is reproducible or it fails.</p>
+
+    <h2 id="memo">13. memo</h2>
+<pre class="code"><code class="rg">memo fn f(a, b) { ... }</code></pre>
+    <p>Results are cached under (definition hash, canonical argument encoding). Sound by construction: purity
+      is required — if the dependency cone reaches <code>!io</code> the compiler emits <code>E0211</code> — and
+      the hash covers the entire cone, so any change that could alter the result changes the key. Staleness is
+      impossible by construction rather than detected.</p>
+    <p>The cache persists across processes in <code>.rigid-memo.json</code> at the workspace root. The
+      <code>memo</code> flag is an execution annotation, not meaning: toggling it does not move the
+      definition's hash. <code>dyn</code> inside a memo function is sound, because the declared set is inside
+      the hashed cone. The JS target runs memo functions uncached.</p>
+
+    <h2 id="temporal">14. Temporal references</h2>
+    <p>On every green <code>check</code>, each definition is written to <code>.rigid-store/</code> under its
+      hash: the source slice with its own name and every resolved reference rewritten to
+      <code>d_&lt;hash12&gt;</code>, plus an index of dependency hashes. A stored cone is therefore a
+      self-contained module.</p>
+<pre class="code"><code class="rg">@"&lt;hash-prefix&gt;"(args)</code></pre>
+    <p>This calls that version live: the cone is materialized into a synthetic workspace, checked, and
+      executed against its <em>old</em> meanings. Temporal calls require <code>!io</code> at the caller,
+      because a past version's effects are unknown. The store is content-addressed and immutable — a hash is
+      never rewritten, only added. <code>rigid recall &lt;prefix&gt; [args]</code> is the CLI form. The JS
+      target refuses temporal calls at runtime.</p>
+
+    <h2 id="externs">15. Externs</h2>
+<pre class="code"><code class="rg">extern fn name(a, b) !io = "host.path";</code></pre>
+    <p>An extern declares a foreign function as a boundary node in the graph. It has arity (checked at every
+      call form), an effect (propagated exactly), and a content identity over the declaration itself — so a
+      changed host path is W0401 drift like any other meaning change.</p>
+    <p>The rigid VM refuses extern calls with a directive error; <code>build --target js</code> emits an
+      arity-shaped wrapper over the dotted global path, which must be a valid identifier path (anything else
+      is refused at build time, never emitted as executable text).</p>
+    <p>Declarations are trusted for arity and effect; <em>values</em> are not. Every extern return is checked
+      at the boundary in emitted code. Integers, strings, and lists or records of the same pass through;
+      booleans coerce to <code>1</code>/<code>0</code>; non-integer numbers, null, undefined, and host objects
+      are refused with an error naming the extern, so a float cannot enter rigid arithmetic silently.
+      Integer-valued host numbers (for example <code>Math.sqrt(4)</code>) pass, because they are rigid
+      integers.</p>
+
+    <h2 id="semdiff">16. Semantic diff</h2>
+    <p><code>rigid diff</code> compares two revisions as sets of identities and answers two questions
+      separately, because they have different victims. <strong>Meaning</strong>: did any definition's hash
+      move? Equal hash sets prove that none did, whatever the text shows. <strong>Surface</strong>: did any
+      name or module move? Behaviour is intact, but callers outside the workspace refer to definitions by
+      name. A pure refactor is <em>meaning unchanged, surface changed</em> — a pair that is not expressible
+      in a language where a rename <em>is</em> an edit.</p>
+    <p>Every definition lands in exactly one bucket: renamed, moved, changed, added, or removed. Identity is
+      matched before name, so a name re-used for something new reads as a rename plus an addition — the same
+      event <code>E0202</code> refuses to let happen silently.</p>
+
+    <h2 id="merge">17. Merge</h2>
+    <p><code>rigid merge</code> merges three revisions by definition rather than by line. Definitions are
+      paired across revisions by identity first and name second: a surviving hash is the same definition
+      whatever it is called, and a surviving name is the same definition whatever it now does.</p>
+    <p>Name and body then resolve <strong>independently</strong>. Two sides that renamed differently conflict
+      on the name; two sides that edited differently conflict on the body; one of each does not conflict at
+      all, and both changes survive. That last case is the one a line-based merge reports as a conflict,
+      because it cannot see that the two edits are about different coordinates.</p>
+    <p><code>-o DIR</code> writes the merged workspace. Bodies move as text, comments included — text is
+      authoritative for content, so a merge relocates it rather than regenerating it from the graph.
+      References inside a moved body are rewritten to the merged names, skipping string literals. Conflicts
+      are refused rather than marked: nothing is written until they are resolved.</p>
+
+    <h2 id="diagnostics">18. Diagnostics</h2>
+    <p>Codes are stable and never renumbered. <code>--json</code> emits an array of
+      <code>{code, severity, file, span, message, data, fixes}</code>, where <code>fixes</code> are typed and
+      mechanically applicable (<code>rename_reference</code>, <code>rebind</code>, <code>quarantine_call</code>,
+      <code>add_dyn_targets</code>). Machine consumers are first-class readers of compiler output.</p>
+    <div class="tbl-wrap">
+      <table class="cmp">
+        <thead><tr><th style="width:6rem">Code</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>E0101</td><td class="other">Syntax error.</td></tr>
+          <tr><td>E0201</td><td class="other">Unresolved name or import. Carries a rename hint when the pinned identity is found under another name.</td></tr>
+          <tr><td>E0202</td><td class="other">Resolution would change — the silent-rebind refusal.</td></tr>
+          <tr><td>E0203</td><td class="other">Ambiguous binding: an import colliding with a local definition, or a duplicate definition.</td></tr>
+          <tr><td>E0204</td><td class="other">Calling a value outside a <code>dyn</code> block; quarantine required.</td></tr>
+          <tr><td>E0205</td><td class="other"><code>&amp;</code> or a dyn target is not a definition.</td></tr>
+          <tr><td>E0206</td><td class="other">Bare definition in value position; use <code>&amp;name</code>.</td></tr>
+          <tr><td>E0207</td><td class="other">A capability is used or reached without being declared.</td></tr>
+          <tr><td>E0208</td><td class="other">Table misuse: direct call of a table, dispatch through a non-table, or a non-function target.</td></tr>
+          <tr><td>E0209</td><td class="other">Argument count does not match the target's arity.</td></tr>
+          <tr><td>E0210</td><td class="other">Assignment target is not a local; definitions are immutable.</td></tr>
+          <tr><td>E0211</td><td class="other">A <code>memo</code> definition's dependency cone reaches <code>!io</code>; memoization requires purity.</td></tr>
+          <tr><td>E0212</td><td class="other">A literal argument falls outside the parameter's inferred value domain.</td></tr>
+          <tr><td>E0213</td><td class="other">The selected compile target cannot represent this construct. Reserved; no target currently reports it.</td></tr>
+          <tr><td>E0214</td><td class="other">A rule in <code>rigid.rules</code> was violated — a forbidden reference, a missing test, or a missing attestation.</td></tr>
+          <tr><td>W0405</td><td class="other">An imported definition gained a capability it did not have when pinned. Error under <code>--frozen</code>.</td></tr>
+          <tr><td>E0301</td><td class="other">Retired in v1 (SCC hashing). The code stays reserved and is never reused.</td></tr>
+          <tr><td>W0401</td><td class="other">A pinned target's content drifted; repinned. An error under <code>--frozen</code>.</td></tr>
+          <tr><td>W0403</td><td class="other">A funref may reach a dyn site outside its declared set. Fix: <code>add_dyn_targets</code>.</td></tr>
+          <tr><td>W0404</td><td class="other">A pinned quarantine target's content changed. An error under <code>--frozen</code>.</td></tr>
+          <tr><td>I0402</td><td class="other">A new reference was pinned.</td></tr>
+          <tr><td>I0405</td><td class="other">Inferred quarantine set for an unquarantined call. Fix: <code>quarantine_call</code>.</td></tr>
+          <tr><td>I0406</td><td class="other">A same-module definition was renamed (identity match); typed rename fix.</td></tr>
+          <tr><td>I0407</td><td class="other">A dispatch table no test reaches, so nothing asserts which handler each key selects. Reported only where the workspace already has tests.</td></tr>
+          <tr><td>I0408</td><td class="other">A table key that is also the name of another target of the same table, but selects a different one — the shape a transposed pair leaves behind.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="cli">19. CLI</h2>
+    <div class="tbl-wrap">
+      <table class="cmp">
+        <thead><tr><th style="width:34%">Command</th><th>Does</th></tr></thead>
+        <tbody>
+          <tr><td>check [--root D] [--frozen] [--json] [--require KIND]</td><td class="other">Parse, resolve, hash, reconcile the sidecars. <code>--require KIND</code> fails unless every definition carries a live attestation of that kind.</td></tr>
+          <tr><td>run PATH#NAME [ARGS…]</td><td class="other">Evaluate a definition. An argument is an integer, a float if it has a decimal point, or a string.</td></tr>
+          <tr><td>test [--no-cache]</td><td class="other">Run <code>test_*</code> definitions; results cached by content hash.</td></tr>
+          <tr><td>watch</td><td class="other">Re-check on every save and re-run only the tests the change could affect.</td></tr>
+          <tr><td>diff [--against D | --save]</td><td class="other">Grade a text diff by identity: what changed <em>meaning</em> versus what only changed name or file. <code>--require-no-semantic-change</code> for CI.</td></tr>
+          <tr><td>caps [--json]</td><td class="other">Which definitions reach the outside world, and through which extern.</td></tr>
+          <tr><td>attest PATH#NAME --kind K [--by WHO]</td><td class="other">Bind a claim — <code>reviewed</code>, <code>audited</code>, <code>generated</code> — to a definition's identity. Live while that hash is current, void the moment it is not. <code>--list</code> shows the ledger.</td></tr>
+          <tr><td>trust PATH#NAME [--json]</td><td class="other">Every live and stale claim about a definition, and which of its cone carries none.</td></tr>
+          <tr><td>dead [--entry PATH#NAME]…</td><td class="other">Definitions nothing can reach from a test, a <code>main</code>, or a named entry. A proof, not a search.</td></tr>
+          <tr><td>dup [--json]</td><td class="other">Definitions with the same identity — the same code written twice.</td></tr>
+          <tr><td>merge --base D --ours D --theirs D [-o D]</td><td class="other">Three-way merge over identities. A rename on one side and an edit on the other are different coordinates, so both survive.</td></tr>
+          <tr><td>why PATH#NAME [--json]</td><td class="other">What gets a new hash if this changes, which tests re-execute, and the reference path that reaches them.</td></tr>
+          <tr><td>hash (--all | PATH#NAME)</td><td class="other">Print content identities.</td></tr>
+          <tr><td>deps PATH#NAME [--json]</td><td class="other">Outgoing references.</td></tr>
+          <tr><td>rdeps PATH#NAME [--json]</td><td class="other">Blast radius.</td></tr>
+          <tr><td>fix [--apply]</td><td class="other">Apply typed <code>rename_reference</code> fixes and converge.</td></tr>
+          <tr><td>rebind PATH#NAME</td><td class="other">Explicitly accept a name's changed meaning.</td></tr>
+          <tr><td>fmt PATH [--write]</td><td class="other">Canonical rendering. Comment-preserving and hash-neutral.</td></tr>
+          <tr><td>repl [--mod PATH]</td><td class="other">Evaluate expressions against the workspace.</td></tr>
+          <tr><td>recall PREFIX [ARGS…]</td><td class="other">Call a stored earlier version by hash prefix.</td></tr>
+          <tr><td>exactness [--json]</td><td class="other">Reference-exactness metric: singleton call sites over all call sites.</td></tr>
+          <tr><td>describe</td><td class="other">Emit the whole architecture as one hash-anchored JSON spec: every definition with identity, arity, effects, exact deps and rdeps, table topology, dyn sets, extern boundary, and test coverage.</td></tr>
+          <tr><td>build --target js [-o FILE]</td><td class="other">Compile the workspace to JavaScript.</td></tr>
+          <tr><td>lsp</td><td class="other">Language server over stdio JSON-RPC: diagnostics, definition, references, hover-with-identity, quarantine code actions.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small muted" style="margin-top:1rem">Every command accepts <code>--root DIR</code> to select the
+      workspace. <code>RIGID_CACHE_DIR</code> relocates the test and memo caches so CI and a working copy can
+      share one — the keys are content hashes, so a result computed anywhere is valid everywhere.
+      <code>RIGID_TIMING=1</code> reports where <code>check</code> spends its time.</p>
+
+    <div class="next" style="margin-top:2rem">
+      <a href="learn.html">
+        <div class="h">Tutorial →</div>
+        <div class="d">The language from the first program, with every snippet run against the compiler.</div>
+      </a>
+      <a href="quarantine.html">
+        <div class="h">Quarantine →</div>
+        <div class="d">The full design of <code>dyn</code>, guarantees G1–G4, and the soundness sketch.</div>
+      </a>
+    </div>
+  </main>
+</div>
+
+<footer>
+  <div class="wrap frow">
+    <div>rigid — <a href="https://dudas.ai">David Dudas</a></div>
+  </div>
+</footer>
+
+<script src="site.js?v=9"></script>
+</body>
+</html>

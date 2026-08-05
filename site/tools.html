@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>rigid tools — what you can ask the compiler</title>
+<meta name="description" content="The queries an exact reference graph makes decidable: grade a diff by identity, merge a rename against an edit, bind review to a hash, and find what nothing reaches.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cg stroke='%232F4BD8' stroke-width='2.4' fill='none'%3E%3Cpath d='M8 24 L16 8 L24 24'/%3E%3C/g%3E%3Cg fill='%232F4BD8'%3E%3Ccircle cx='8' cy='24' r='3.4'/%3E%3Ccircle cx='16' cy='8' r='3.4'/%3E%3Ccircle cx='24' cy='24' r='3.4'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=9">
+<script>
+  try {
+    var t = localStorage.getItem("rigid-theme");
+    if (t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches)
+      document.documentElement.classList.add("dark");
+  } catch (e) {}
+</script>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap inner">
+    <a class="brand" href="index.html">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><g stroke="var(--accent)" stroke-width="2.4" fill="none"><path d="M8 24 L16 8 L24 24"/></g><g fill="var(--accent)"><circle cx="8" cy="24" r="3.4"/><circle cx="16" cy="8" r="3.4"/><circle cx="24" cy="24" r="3.4"/></g></svg>
+      <b>rigid</b><span class="ver">v1.8</span>
+    </a>
+    <select class="navpick" id="navpick" aria-label="Go to page">
+      <optgroup label="Language">
+        <option value="index.html">Home</option>
+        <option value="learn.html">Learn</option>
+        <option value="play.html">Playground</option>
+        <option value="spec.html">Specification</option>
+        <option value="tools.html" selected>Tools</option>
+      </optgroup>
+      <optgroup label="Design">
+        <option value="paper.html">Paper</option>
+        <option value="quarantine.html">Quarantine</option>
+      </optgroup>
+      <optgroup label="Evidence">
+        <option value="evidence.html">Evidence</option>
+        <option value="benchmark.html">Benchmark</option>
+        <option value="experiment.html">Experiment</option>
+        <option value="study.html">Study</option>
+        <option value="prereg.html">Pre-registration</option>
+      </optgroup>
+    </select>
+    <a class="lnk gh" href="https://github.com/DavidRDudas/rigidlang" aria-label="GitHub">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+    </a>
+    <button class="tbtn" id="theme" aria-label="Toggle dark mode">
+      <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+      <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+  </div>
+</nav>
+<div class="wrap doc">
+  <aside class="toc">
+    <div class="t">Tools</div>
+    <ol>
+      <li><a href="#why">Why these exist</a></li>
+      <li class="grp" role="presentation">Change</li>
+      <li><a href="#diff">diff</a></li>
+      <li><a href="#merge">merge</a></li>
+      <li class="grp" role="presentation">Evidence</li>
+      <li><a href="#attest">attest and trust</a></li>
+      <li class="grp" role="presentation">Reach</li>
+      <li><a href="#caps">caps</a></li>
+      <li><a href="#dead">dead</a></li>
+      <li><a href="#dup">dup</a></li>
+      <li><a href="#graph">why, deps, rdeps</a></li>
+    </ol>
+  </aside>
+
+  <main class="doc-body">
+    <h1>Tools</h1>
+    <p class="lead">rigid's compiler keeps an exact reference graph as a byproduct of resolution — not
+      reconstructed afterwards, not approximated. These are the questions that becomes decidable once it
+      does. Every transcript below is real output, not an illustration.</p>
+
+    <h2 id="why">Why these exist</h2>
+    <p>A definition's identity is the hash of its canonical form, with bound names erased and every
+      reference replaced by the hash of what it points at. Two consequences drive everything on this page.
+      A rename moves no hash, so the tools can tell a rename from a rewrite. And a hash covers the whole
+      dependency cone, so a claim about one definition is a claim about everything it reaches.</p>
+    <p>Elsewhere these questions are answered by heuristics: a structural differ guesses at renames, an
+      import linter approximates the call graph, a review approval is bound to a diff. Here they are
+      answered by the same resolution the compiler already performed.</p>
+
+    <h2 id="diff">diff — grade a text diff by identity</h2>
+    <p>Two revisions are compared as sets of identities. The report separates two questions, because they
+      have different victims: whether any definition changed <em>meaning</em>, and whether any name moved.
+      Below, the definition was renamed, every parameter was renamed, and the body was reflowed onto seven
+      lines. Not one line of <code>util.rg</code> survived.</p>
+    <pre class="term"><code><span class="pr">$</span> rigid diff --against ../before
+3 definitions before, 3 after — 2 identical
+
+  renamed   util.rg#clamp  -&gt;  util.rg#clip
+
+meaning   unchanged — provably semantics-preserving
+          every identity on both sides is the same set, so no
+          definition can behave differently.
+surface   1 name(s) moved — behaviour is intact, but callers
+          outside this workspace refer to them by name</code></pre>
+    <p>Equal hash sets on both sides prove no definition can behave differently, whatever the text shows.
+      A rename still breaks callers outside the workspace, which is why <em>surface</em> is reported
+      separately rather than folded into a single verdict.</p>
+    <p><code>--require-no-semantic-change</code> exits non-zero when meaning moved, so a pull request that
+      claims to be a pure refactor can be made to prove it. <code>--save</code> records a baseline for a
+      later bare <code>rigid diff</code>.</p>
+
+    <h2 id="merge">merge — a rename and an edit are different coordinates</h2>
+    <p>Definitions are paired across three revisions by identity first and name second: a surviving hash is
+      the same definition whatever it is called, and a surviving name is the same definition whatever it now
+      does. Name and body then resolve independently.</p>
+    <pre class="term"><code><span class="cm"># ours renamed clamp to clip. theirs changed what it does. Same lines.</span>
+<span class="pr">$</span> rigid merge --base base --ours ours --theirs theirs -o merged
+  take Theirs   app.rg#main
+  merged     u.rg#clip  (ours renamed it, theirs changed what it does — kept both)
+
+2 definitions considered, 0 conflicts.
+1 merged on both coordinates at once — a rename on one side and an
+edit on the other. A line-based merge reports those as conflicts,
+because it cannot see that the two changes are about different things.
+
+
+<span class="pr">$</span> cat merged/u.rg
+// clamp into a range
+fn clip(x, lo, hi) {
+  return if (x &lt; lo) lo else if (x &gt;= hi) hi - 1 else x;
+}
+<span class="pr">$</span> rigid check --root merged &amp;&amp; rigid run app.rg#main 20
+ok: 2 module(s), 2 definition(s), 2 hashed
+9</code></pre>
+    <p>Git reports that as a conflict — the same lines changed on both sides — because it cannot see that
+      one side moved a name and the other moved a meaning. Two sides that rename differently still conflict,
+      and so do two that edit differently; nothing is written until they are resolved.</p>
+
+    <h2 id="attest">attest and trust — evidence bound to identity</h2>
+    <p>A claim about a definition — <code>reviewed</code>, <code>audited</code>, <code>benchmarked</code>,
+      <code>generated</code> — binds to that definition's hash rather than to a commit or a diff. It is live
+      while the hash is current and void the moment it is not.</p>
+    <pre class="term"><code><span class="pr">$</span> rigid attest api.rg#handler --kind reviewed --by david
+attested reviewed api.rg#handler
+  identity sha256:1081d87ac59fc8e4c0fba700a07dd0a30d8220f9a9a9405bebfb85628fcbb3b6
+  covering 3 definition(s) in its cone — an edit to any of them
+  moves this hash and voids the claim.
+
+<span class="cm"># someone edits sanitize — two modules and three calls away</span>
+<span class="pr">$</span> rigid trust api.rg#handler
+api.rg#handler  sha256:efc0aa8a1b51134a3bf92f8afea6af75e63cf43ca20116dcad9e63eac3180bf2
+
+no live claim about this definition.
+
+stale — made about a version that no longer exists:
+  reviewed   by david on 2026-08-05</code></pre>
+    <p>Because a hash covers its cone, reviewing <code>handler</code> attests to everything
+      <code>handler</code> reaches. The edit above was three calls away in another module and the review
+      went void without anyone deciding it should. A rename anywhere in that cone would not have, because a
+      rename moves no hash.</p>
+    <p>Every other review system binds approval to a diff, so it survives a rebase that changed the logic
+      and dies on a rename that changed nothing. Stale claims are kept rather than deleted:
+      <em>unreviewed</em> and <em>stale</em> are different facts. <code>rigid check --require reviewed</code>
+      fails the build unless every definition carries a live claim of that kind.</p>
+
+    <h2 id="caps">caps — what reaches the outside world</h2>
+    <p>Effects are a declared set — <code>!io !fs !net !env !time !rand !proc</code> — and every capability
+      enters through an <code>extern</code>. Propagation follows the exact graph, so the listing is complete
+      by construction rather than by search.</p>
+    <pre class="term"><code><span class="pr">$</span> rigid caps
+5 definitions, 1 pure.
+
+!net    2 definition(s)
+        via extern host.rg#fetch = &quot;globalThis.fetch&quot;
+          app.rg#download
+          host.rg#fetch
+
+!time   2 definition(s)
+        via extern host.rg#now = &quot;Date.now&quot;
+          app.rg#stamp
+          host.rg#now
+
+Every capability enters through an extern and travels the exact
+graph, so this list is complete by construction, not by search.</code></pre>
+    <p>Capabilities are part of canonical form, so they are part of identity: an imported definition that
+      gains one gets a new hash, and its importer's sidecar reports the widening by name as
+      <code>W0405</code> — an error under <code>--frozen</code>. Measured across 3,533 consecutive npm
+      upgrades, a patch release widens its capability set 0.5% of the time, which is what makes that check
+      worth leaving on. See <a href="evidence.html">the evidence</a>.</p>
+
+    <h2 id="dead">dead — what nothing can reach</h2>
+    <p>Roots are every <code>test_*</code> definition, anything named <code>main</code>, and any
+      <code>--entry</code> given explicitly. The answer is a proof rather than a guess.</p>
+    <pre class="term"><code><span class="pr">$</span> rigid dead
+9 of 16 definition(s) unreachable from any test, any `main`.
+
+1 nothing in this workspace references at all:
+  pipeline.rg#triage
+
+8 reachable only from those:
+  pipeline.rg#log
+  pipeline.rg#notify_oncall
+  pipeline.rg#queue_normal
+  pipeline.rg#escalate
+  pipeline.rg#route_network
+  pipeline.rg#route_database
+  pipeline.rg#route_access
+  pipeline.rg#routes
+
+This is the compiler&#x27;s own resolution, not a search: nothing here can
+reach them. Each name in the first list is a decision — an entry point
+to declare with --entry, or code to delete. The second list follows.</code></pre>
+    <p>The split matters. Definitions nothing references <em>at all</em> are decisions — an entry point to
+      declare, or code to delete. Everything beneath them follows automatically, so a list of nine becomes
+      one thing to think about.</p>
+
+    <h2 id="dup">dup — the same code written twice</h2>
+    <p>Two definitions whose canonical forms are equal have the same hash. Detecting that costs nothing:
+      it is the same comparison the test cache already makes.</p>
+    <pre class="term"><code><span class="pr">$</span> rigid dup
+2 definition(s) in 1 group(s) mean exactly the same thing:
+
+  sha256:6fcd0c9e5ef8
+    md.rg#r_blank
+    md.rg#r_fence
+
+These are not similar — they are identical. The canonical form erased
+the names and what remained was the same bytes, so one of them can</code></pre>
+
+    <h2 id="graph">why, deps, rdeps — the graph itself</h2>
+    <p><code>rigid deps</code> and <code>rigid rdeps</code> list outgoing and incoming references.
+      <code>rigid why</code> answers the question behind them: if this changes, what gets a new hash, which
+      tests re-execute, and by what path.</p>
+    <pre class="term"><code><span class="pr">$</span> rigid why score.rg#severity
+score.rg#severity  sha256:27f823254df68f2937d0872713b658cb54a8163fa6d94b10e41f4f64d5e5776c
+
+if this changes, 7 definition(s) get a new hash:
+  pipeline.rg#route_network
+  pipeline.rg#route_database
+  pipeline.rg#route_access
+  pipeline.rg#triage
+  pipeline.rg#routes
+  tests.rg#test_severity_clamps
+  tests.rg#test_severity_floor
+
+and 2 test(s) re-execute, because:
+  test_severity_clamps -&gt; severity
+  test_severity_floor -&gt; severity</code></pre>
+    <p>The path is the reason, not a guess at one — it is the chain of references the compiler resolved.
+      That is also what makes the test cache sound: an unchanged hash is a provably identical rerun, so
+      <code>rigid test</code> skips it rather than hoping.</p>
+
+    <div class="note" style="margin-top:2rem">
+      <span class="lbl">note</span>
+      <p>All twenty-four commands are listed in <a href="spec.html#cli">the specification</a>. The ones on
+        this page are the ones that need the exact graph; the rest are the ordinary business of a compiler.</p>
+    </div>
+  </main>
+</div>
+
+<footer>
+  <div class="wrap frow">
+    <div>rigid — <a href="https://dudas.ai">David Dudas</a></div>
+  </div>
+</footer>
+
+<script src="site.js?v=9"></script>
+</body>
+</html>

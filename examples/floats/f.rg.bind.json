@@ -1,0 +1,17 @@
+{
+  "format": "rigid-bind/0",
+  "definitions": {
+    "area": "sha256:cf2e88063bf9e9642584fe113ae393729b7338f89b99d17047bf8eab0a1b4882",
+    "cross_eq": "sha256:c471f1f1239ddcfb50f1d7f61c8792ea4d97bb118a45e44d0a8149cdda751a12",
+    "float_div": "sha256:24b6dff3e00cc5004524852521f0a2b4968fc5df446de77c5848bdb0879bed0c",
+    "half": "sha256:8fe6761718b1548cc1d47509563abffa3d2084f8b19f74f796af727e9adc4449",
+    "int_div": "sha256:0de2043f68db329e72880c9ce83410cacddc48791412136be0b18541db681357",
+    "shown": "sha256:4fedb12d20661c5768962fb276a7e8c44f210526110f0cf18fb615832bfe6f53",
+    "test_float_division_does_not": "sha256:344e3631ae8fe03f049224a5d2e33a20a3e10f933a4080f504782bbbf290236d",
+    "test_int_division_truncates": "sha256:a5bf8a4f68096651503ca9a8cab0896277ce99e0faa5c117c6b9d70bc7d1f117",
+    "test_two_point_zero_shows_its_point": "sha256:db7e35ac3909ccf0ab2206d04634f754b288afa2b3f105478f37c5bf7190dc76"
+  },
+  "quarantine": {},
+  "module_hash": "sha256:408b00f534921f45d093a0bd646900b5fdb8d4684fa1d635df684dd4b023edb2",
+  "references": {}
+}

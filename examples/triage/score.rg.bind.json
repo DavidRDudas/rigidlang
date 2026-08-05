@@ -1,0 +1,11 @@
+{
+  "format": "rigid-bind/0",
+  "definitions": {
+    "clampi": "sha256:8ccd2404522be91a59bfed166dbd5465cb38f736d563b0d61a4631d6b1b09995",
+    "is_p1": "sha256:32f8205e3550afd8b09ec30ac0be47ea3fc85fe6abc4b9765f957fb0750e7d83",
+    "severity": "sha256:27f823254df68f2937d0872713b658cb54a8163fa6d94b10e41f4f64d5e5776c"
+  },
+  "quarantine": {},
+  "module_hash": "sha256:ed20d85f124b7c3cd80d656b304d7a348379de093605fdd40bb59846112e6443",
+  "references": {}
+}

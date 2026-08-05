@@ -1,0 +1,76 @@
+{
+  "format": "rigid-bind/0",
+  "definitions": {
+    "classify": "sha256:c6912f63b0f667b203ee51a700f7dc65e068bbc98de7ffaf72debd933a5bbc7e",
+    "find2": "sha256:87fe076ffc5ac6182bd0c75e66f63984185db779a596368ff9ca93b3cccff7be",
+    "inline": "sha256:47e4531ea957310f89a059010f1b3f5112e60f25dc60e14e47b6b2abde977e8d",
+    "inline_link": "sha256:867fec105e3f02a72100278b0ab51513ae4d9324ab0502a98e123494f308c662",
+    "inline_span": "sha256:e8351df8fbb70867965fee9a00a9179f59a7a776166d4b574c40a443618123a6",
+    "inline_span2": "sha256:2f4dc8b824343208c839335474fa36c31e54c6ca41ebd2d6ff66f97c52f37cf6",
+    "r_blank": "sha256:6fcd0c9e5ef80cc48d053075ca6d6bc3fff54383e1100fecef146e365da43fbe",
+    "r_fence": "sha256:6fcd0c9e5ef80cc48d053075ca6d6bc3fff54383e1100fecef146e365da43fbe",
+    "r_h1": "sha256:3971e996d106d2b01c8351baac43d35ae4f05fc6722e614d4ec1cf4104906833",
+    "r_h2": "sha256:5b07a714632b06147a4f88b81d5cc079f4b292859648db64ad78ea5b2f3f6c86",
+    "r_h3": "sha256:cb5c31b9657c70c879ad27e1feeafd75261953941668cd40b55d85a3d3a0c54b",
+    "r_li": "sha256:943cf9bf851581f058477a532cb4911e5cc49ec6d82ee57847bb5fccb8fd77f6",
+    "r_para": "sha256:57be2f1a4abfa746f9a4e0494588baf3eef01c0a134570354c8bed253d4f9dcd",
+    "r_quote": "sha256:2e8165406ef7d6a79ed4eb2346582b6a3614b9cfdc967933f68fe2127f5b98af",
+    "render": "sha256:580e6ec461fd025aa8e6b3d39bc58e4771df79383210a8f99f8cb318751cdea8",
+    "renderers": "sha256:29d2c7c8367cea5964a0a38dc7dfc6904e7ab691327718acefe935b24272ef6f",
+    "test_bold": "sha256:d470db0e097b15a50c6d3d6088da06076dded10c1c3eb53c66aebfe7711da95b",
+    "test_code_span": "sha256:e99dba0b84da5eb024f7a34841cc1c8d56c9bbd16515beb830cb42471ba368fc",
+    "test_escape_in_para": "sha256:b1a5ff9aa7207d536ea46fec406896356b6386a06352472da2f05c0248071cfc",
+    "test_fence_literal": "sha256:33b5b5604b3004c9bb3173bcc0a442f28e62601276f4275c3b9337e713a4f0b8",
+    "test_h1": "sha256:c0f34861a67cd14c9061fe487447e59ccb7920eef42de468d27059905c8d7d14",
+    "test_link_inline": "sha256:acfc61576d4d97d1777cf3458fc8fde7610a099c4b93f4a497291a779e64df9f",
+    "test_list_wraps": "sha256:e91c1cc2903546ef8436e57365b7653df52adb2e97bcf7465088d28115265f75",
+    "test_quote": "sha256:fae4a3e4afb72be17f5fe8c5a28e5bf5a3d4cb52659a1e90814edc53236801fb",
+    "test_title": "sha256:e6548e25c6dae5a9e3b8f8abc4458e0a7fd24b4391cda917229ae33fbd6157d3",
+    "test_title_default": "sha256:212f918ae31bc4826cb34be8570499c19724c2bc9b2c2d0676391b44db84a927",
+    "test_unclosed_bold": "sha256:e7254f20731662c2b91792feb9e9a6f67dd408df993a5a8dd5700aca9d630f21",
+    "title_of": "sha256:c83feb1d23fc9dbe6c9d6cf0389ce35b2f68846f6d9b51de2dd55334f936a433"
+  },
+  "quarantine": {
+    "table:renderers": {
+      "blank": "sha256:6fcd0c9e5ef80cc48d053075ca6d6bc3fff54383e1100fecef146e365da43fbe",
+      "fence": "sha256:6fcd0c9e5ef80cc48d053075ca6d6bc3fff54383e1100fecef146e365da43fbe",
+      "h1": "sha256:3971e996d106d2b01c8351baac43d35ae4f05fc6722e614d4ec1cf4104906833",
+      "h2": "sha256:5b07a714632b06147a4f88b81d5cc079f4b292859648db64ad78ea5b2f3f6c86",
+      "h3": "sha256:cb5c31b9657c70c879ad27e1feeafd75261953941668cd40b55d85a3d3a0c54b",
+      "li": "sha256:943cf9bf851581f058477a532cb4911e5cc49ec6d82ee57847bb5fccb8fd77f6",
+      "para": "sha256:57be2f1a4abfa746f9a4e0494588baf3eef01c0a134570354c8bed253d4f9dcd",
+      "quote": "sha256:2e8165406ef7d6a79ed4eb2346582b6a3614b9cfdc967933f68fe2127f5b98af"
+    }
+  },
+  "module_hash": "sha256:ebd4e8fd6745f34bff502d74847aa95e62fe68554c2967d83f0d22f5ee24aa03",
+  "references": {
+    "drop_prefix": {
+      "target": "strings.rg#drop_prefix",
+      "hash": "sha256:e7648e45b56e33db842a1aed20ea8f3b65c6a53e815ef70f49f54f085b0c1375"
+    },
+    "escape": {
+      "target": "html.rg#escape",
+      "hash": "sha256:27b7a481c0d2355d5cfcf1edf092b44722433194e581ff17be96b1f3fb69d552"
+    },
+    "find_from": {
+      "target": "strings.rg#find_from",
+      "hash": "sha256:52b9b6ac1ed86129fbffee93743876fe3b0d3803929b2c85a1353cfca944320d"
+    },
+    "link": {
+      "target": "html.rg#link",
+      "hash": "sha256:9ec6ff6c6a5e6391fc07754644aba3f0955c167d87f0541ee65401255f8b34ac"
+    },
+    "split_lines": {
+      "target": "strings.rg#split_lines",
+      "hash": "sha256:4c3bf1bdb8f2ffe9b931ce6264e041773174d9e163ac0275339a2f201da309a9"
+    },
+    "starts_with": {
+      "target": "strings.rg#starts_with",
+      "hash": "sha256:48203a1ec92c4973b13b759c96635debe5a7179cfd7672c2158a9dc6e393a737"
+    },
+    "tag": {
+      "target": "html.rg#tag",
+      "hash": "sha256:f150f7d9c8aff5adde94ec13b2e1b4d432a5a92921a3fbc89c864c73fdb3ca5d"
+    }
+  }
+}

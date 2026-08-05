@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Benchmark — rigid</title>
+<meta name="description" content="Breakage detection measured against TypeScript&#x27;s compiler, scenario by scenario.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cg stroke='%232F4BD8' stroke-width='2.4' fill='none'%3E%3Cpath d='M8 24 L16 8 L24 24'/%3E%3C/g%3E%3Cg fill='%232F4BD8'%3E%3Ccircle cx='8' cy='24' r='3.4'/%3E%3Ccircle cx='16' cy='8' r='3.4'/%3E%3Ccircle cx='24' cy='24' r='3.4'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=9">
+<script>
+  try {
+    var t = localStorage.getItem("rigid-theme");
+    if (t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches)
+      document.documentElement.classList.add("dark");
+  } catch (e) {}
+</script>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap inner">
+    <a class="brand" href="index.html">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><g stroke="var(--accent)" stroke-width="2.4" fill="none"><path d="M8 24 L16 8 L24 24"/></g><g fill="var(--accent)"><circle cx="8" cy="24" r="3.4"/><circle cx="16" cy="8" r="3.4"/><circle cx="24" cy="24" r="3.4"/></g></svg>
+      <b>rigid</b><span class="ver">v1.8</span>
+    </a>
+    <select class="navpick" id="navpick" aria-label="Go to page">
+      <optgroup label="Language">
+        <option value="index.html">Home</option>
+        <option value="learn.html">Learn</option>
+        <option value="play.html">Playground</option>
+        <option value="spec.html">Specification</option>
+        <option value="tools.html">Tools</option>
+      </optgroup>
+      <optgroup label="Design">
+        <option value="paper.html">Paper</option>
+        <option value="quarantine.html">Quarantine</option>
+      </optgroup>
+      <optgroup label="Evidence">
+        <option value="evidence.html">Evidence</option>
+        <option value="benchmark.html" selected>Benchmark</option>
+        <option value="experiment.html">Experiment</option>
+        <option value="study.html">Study</option>
+        <option value="prereg.html">Pre-registration</option>
+      </optgroup>
+    </select>
+    <a class="lnk gh" href="https://github.com/DavidRDudas/rigidlang" aria-label="GitHub">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+    </a>
+    <button class="tbtn" id="theme" aria-label="Toggle dark mode">
+      <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+      <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+  </div>
+</nav>
+
+<div class="wrap doc">
+  <aside class="toc">
+    <div class="t">Benchmark</div>
+    <ol>
+      <li><a href="#result">Result</a></li>
+      <li><a href="#what-can-and-cannot-be-checked-about-a-dispatch-table">What can and cannot be checked about a dispatch table</a></li>
+      <li><a href="#where-typescript-cannot-help">Where TypeScript cannot help</a></li>
+      <li><a href="#the-type-gap-and-how-far-it-closed">The type gap, and how far it closed</a></li>
+      <li><a href="#what-neither-catches-and-why-one-of-them-still-finds-it">What neither catches, and why one of them still finds it</a></li>
+      <li><a href="#a-claim-this-corrects">A claim this corrects</a></li>
+      <li><a href="#honest-limits">Honest limits</a></li>
+      <li><a href="#what-it-does-establish">What it does establish</a></li>
+    </ol>
+  </aside>
+  <main class="doc-body">
+<h1>Breakage detection — TypeScript's compiler vs <code>rigid check</code></h1>
+<p>Does rigid actually catch broken references that an existing toolchain misses? This measures it instead of asserting it.</p>
+<p>The same program is written twice — once in strict TypeScript, once in rigid — and the same logical breakage is applied to both. Each checker then gets to report it, in its strongest CI configuration: <code>tsc --strict --noEmit</code> and <code>rigid check</code>. A scenario counts as caught if the checker exits non-zero. Nothing is scored by hand.</p>
+<p>Run it yourself:</p>
+<pre class="code"><code>cd bench &amp;&amp; npm install typescript@5
+python3 bench/run.py</code></pre>
+<h2 id="result">Result</h2>
+<p>Twelve scenarios. <strong>rigid catches eleven, TypeScript ten.</strong></p>
+<div class="tbl-wrap"><table class="cmp"><thead><tr><th>scenario</th><th>tsc</th><th>rigid</th><th>what changed</th></tr></thead><tbody><tr><td>rename-miss</td><td>caught</td><td>caught</td><td>Rename a definition, leave its callers behind</td></tr><tr><td>rename-reuse</td><td><strong>MISSED</strong></td><td>caught</td><td>Rename a definition, then give a different function its old name</td></tr><tr><td>arity-change</td><td>caught</td><td>caught</td><td>Add a parameter, miss one call site</td></tr><tr><td>delete-referenced</td><td>caught</td><td>caught</td><td>Delete a function the dispatch set still points at</td></tr><tr><td>type-mismatch</td><td>caught</td><td>caught</td><td>Pass a string literal where a number belongs</td></tr><tr><td>type-via-local</td><td>caught</td><td>caught</td><td>Bind a string to a local, then pass it where a number belongs</td></tr><tr><td>type-via-return</td><td>caught</td><td>caught</td><td>Pass a function's string result where a number belongs</td></tr><tr><td>arith-on-string</td><td>caught</td><td>caught</td><td>Multiply a string</td></tr><tr><td>field-on-int</td><td>caught</td><td>caught</td><td>Read a field off an integer</td></tr><tr><td>table-target-missing</td><td>caught</td><td>caught</td><td>Point a dispatch key at a name that does not exist</td></tr><tr><td>handler-wrong-arity</td><td>caught</td><td>caught</td><td>Give a dispatch target an extra parameter</td></tr><tr><td>swap-dispatch-targets</td><td><a href="#what-can-and-cannot-be-checked-about-a-dispatch-table">missed by design</a></td><td><a href="#what-can-and-cannot-be-checked-about-a-dispatch-table">missed by design</a></td><td>Swap which handler two keys map to</td></tr></tbody></table></div>
+<p>That last row is not a gap. No error exists to report, and rigid's hash for the table <em>does</em> move so the tests downstream of it re-execute — this column counts <code>check</code> diagnostics only. The next section is the whole explanation.</p>
+<p>This has been made harder three times rather than easier. It began at seven scenarios and 5–5; four type scenarios were added <em>because</em> rigid failed them, and value-domain inference was extended until it did not; then the last three rows were grouped to show where checking a dispatch table stops.</p>
+<p>A score is only worth what its scenarios are worth. This set is small and self-authored, so read the shape of the disagreement, not the tally.</p>
+<h2 id="what-can-and-cannot-be-checked-about-a-dispatch-table">What can and cannot be checked about a dispatch table</h2>
+<p>The last three rows are one program edited three ways, and together they draw the line exactly.</p>
+<p><strong>The target must exist.</strong> Point a key at a name nothing defines and it is a plain unresolved reference:</p>
+<pre class="code"><code>error[E0201] m.rg:5:14: unresolved name 'light'</code></pre>
+<p><strong>The target must fit.</strong> Change a handler's shape and the dispatch that reaches it no longer matches:</p>
+<pre class="code"><code>error[E0209] m.rg:6:23: table entry "light" -&gt; 'slash' has arity 2,
+but this dispatch passes 1 argument(s)</code></pre>
+<p><strong>The pairing is yours.</strong> Swap which handler two keys select and there is nothing to report, because keys are data and bear no required relationship to the names of the functions they select. This is ordinary, correct code:</p>
+<pre class="code"><code>table moves {
+  "light"    -&gt; slash,
+  "heavy"    -&gt; pierce,
+  "cleave"   -&gt; slash,
+  "critical" -&gt; pierce,
+}</code></pre>
+<p>No key there matches a function name, and two keys share a handler. The only rule that would catch a swapped pairing — <em>a key must equal its target's name</em> — would reject all of that.</p>
+<p>So a checker can verify everything about the target and nothing about the choice. That choice is what a test is for, and the point of the hashing is that the right test reruns the moment you touch it.</p>
+<p>There is one shape of wrong pairing that <em>can</em> be recognised without being told what you meant. When a key is exactly the name of another function the same table dispatches to, and points somewhere else, the entries have most likely been transposed:</p>
+<pre class="code"><code>info[I0408] m.rg:3:7: in table 'moves', the key "slash" is also the name of
+another target of this table, but selects 'pierce'. If that is deliberate,
+nothing is wrong; if the entries were transposed, no other check will notice.</code></pre>
+<p>It is information, never an error, because the code is valid either way. It stays silent when a key merely fails to match its target, which is the common case — and it stays silent on this benchmark, whose keys are <code>"network"</code> and <code>"database"</code> rather than handler names. So it covers one convention, not the problem. Across all eleven bundled examples it reports nothing.</p>
+<h2 id="where-typescript-cannot-help">Where TypeScript cannot help</h2>
+<p><code>rename-reuse</code> is the case rigid exists for. A function is renamed, and a <em>different</em> function is later given its old name — the kind of thing that happens across a merge, or when two people work on one module in a week.</p>
+<p>TypeScript compiles it clean, and correctly so: the name resolves, the signature matches, nothing is broken by its rules. Every existing caller now means the new function. There is no diagnostic to emit because TypeScript has no notion of what a name meant <em>before</em>.</p>
+<p>rigid has one, because the sidecar pinned it:</p>
+<pre class="code"><code>error[E0202] router.rg:1:10: 'notify_oncall' from "core.rg" no longer means
+what it meant: the pinned definition (sha256:079abb19fb05…) is now named
+'page_oncall', and 'notify_oncall' now names a different definition
+(sha256:935bcc07c541…). Refusing to silently rebind. Run `rigid rebind
+router.rg#notify_oncall` to accept the new meaning, or rename the reference
+to 'page_oncall'.</code></pre>
+<p>This is not a gap TypeScript could close by trying harder. Detecting it requires a record of the previous resolution, which is what the binding sidecar is.</p>
+<h2 id="the-type-gap-and-how-far-it-closed">The type gap, and how far it closed</h2>
+<p><code>type-mismatch</code> was rigid's miss on the first run, and the three that followed it — a string bound to a local, a function's string result, a field read off an integer — were added afterwards precisely because rigid failed them too.</p>
+<p>All four now report, for example:</p>
+<pre class="code"><code>error[E0212] router.rg:14:10: 'severity' uses parameter 'impact' as integer
+(arithmetic or ordering), but this call passes string
+
+error[E0212] router.rg:20:10: this operator needs integers, but one side is
+a string
+
+error[E0212] router.rg:21:12: '.kind' needs a record, but this is a integer</code></pre>
+<p>This is <strong>value-domain inference</strong>, not a type system, and the distinction is worth keeping. It knows three things: a parameter's domain, from uses that admit exactly one (<code>-</code>, <code>*</code>, <code>/</code>, <code>%</code> and ordering are integer-only; <code>.field</code> needs a record; <code>substr</code>/<code>chars</code> need a string; <code>push</code>/<code>join</code> need a list); a local's domain, from its initializer; and a function's return domain, when every <code>return</code> in it agrees. It then rejects a call argument, an operator operand, or a field access whose domain is <em>known</em> and wrong.</p>
+<p>Everything else infers nothing and reports nothing. A parameter with no domain-forcing use stays polymorphic, and a conflict silences the slot rather than becoming an error:</p>
+<pre class="code"><code>fn id(x) { return x; }      // no domain inferred
+fn a() { return id("s"); }  // fine
+fn b() { return id(1); }    // also fine</code></pre>
+<p>It remains far weaker than a type system. There are no record shapes, no element domains for lists, no domains across a <code>dyn</code> set or a table dispatch, and nothing at all is declared. <code>tsc</code> still knows much more about a program than this does; the benchmark says only that on these eleven breakages the gap no longer shows.</p>
+<p>Two properties were held fixed while extending it, and both are checked on every run: <strong>zero E0212 on all eleven bundled examples</strong>, and the 36-step <code>demo.sh</code> still green. An analysis that fired on working code would be worse than no analysis.</p>
+<h2 id="what-neither-catches-and-why-one-of-them-still-finds-it">What neither catches, and why one of them still finds it</h2>
+<p><code>swap-dispatch-targets</code> is missed by both, and should be. No reference is broken, both handlers exist with the right arity, and the program is valid. Asking a checker to flag it is asking it which mapping you <em>meant</em> — but the mapping is the specification, so there is nothing to compare against.</p>
+<p>It is in the set so the benchmark is not composed only of scenarios somebody wins.</p>
+<p>It is worth being precise about what "missed" means here, because the machinery does react. Swapping two entries moves the table's hash, and moves the hash of every definition that reaches it:</p>
+<pre class="code"><code>BEFORE   table moves : sha256:1563586a1c62…
+AFTER    table moves : sha256:4f0d1e545eec…</code></pre>
+<p>A moved hash is not an error, though. It is the signal to re-check what depended on the definition, and every edit moves one. The column above counts <code>check</code> diagnostics, and there is no diagnostic to emit.</p>
+<p>What a checker <em>can</em> say is that nothing is asserting the mapping, so a swap would go unnoticed. That is now <code>I0407</code>:</p>
+<pre class="code"><code>info[I0407] router.rg:3:7: no test reaches table 'registry', so nothing
+asserts which handler each key selects (3 entries: network, database,
+breach). Swapping two of them would still check clean.</code></pre>
+<p>It is informational, it only appears in workspaces that already have tests, and it goes quiet as soon as one test reaches the table. Turning it on found a real gap in this project's own showcase example: <code>examples/triage</code> has four tests, all covering the scoring core, and <strong>none</strong> reaching the <code>routes</code> table — so swapping two of its handlers would have passed the suite.</p>
+<p>rigid does catch the swap itself, with <code>test</code> rather than <code>check</code>, and this is reproducible:</p>
+<pre class="code"><code>$ rigid check                       # after swapping two table entries
+ok: 2 module(s), 10 definition(s), 10 hashed
+
+$ rigid test
+FAIL  router.rg#test_network_pages  (returned 0)
+PASS  router.rg#test_severity_only  [cached — content unchanged, rerun provably identical]
+1 executed, 1 skipped via content-address cache, 1 failed</code></pre>
+<p>The table's hash moved, so every test downstream of it re-executed and the one asserting the mapping failed. The test that does not depend on the table stayed cached. That is the intended division of labour: <code>check</code> answers whether references are intact, <code>test</code> answers whether behaviour is what you said it was, and the content-addressing is what guarantees the right tests run. This benchmark measures the first of those only.</p>
+<h2 id="a-claim-this-corrects">A claim this corrects</h2>
+<p>Written up elsewhere, rigid's pitch has included the idea that conventional tooling is blind to string-keyed dispatch. On this evidence that is too strong.</p>
+<p>The TypeScript version registers handlers into a <code>Record&lt;string, Handler&gt;</code> at load time, through a <code>register()</code> helper — and <code>tsc</code> still caught <code>handler-wrong-arity</code> and <code>delete-referenced</code> through it, because the handlers are referenced <em>by identifier</em> even though the keys are strings. A type checker follows those references fine.</p>
+<p>What defeats a type checker is not string keys as such; it is when the target is named by a computed string, or the registry is assembled somewhere the checker cannot follow. That is a narrower and more honest claim than "dispatch tables are opaque," and the benchmark is the reason to prefer it.</p>
+<h2 id="honest-limits">Honest limits</h2>
+<ul class='tight'><li><strong>Twelve scenarios, one small two-module program, one baseline.</strong> This is a probe, not a survey. A larger program, or JavaScript without types, or a language with no checker at all, would all move the numbers.</li><li><strong>The scenarios are ours.</strong> They were chosen to span the space including cases rigid loses, but choosing scenarios is not a mechanical act.</li><li><strong><code>tsc</code> is a strong baseline and was given its best configuration.</strong> A repo without strict mode, or with <code>any</code> at the boundaries, would do worse — but that is a fact about that repo, not about TypeScript.</li><li><strong>Detection is not value.</strong> Catching <code>rename-reuse</code> matters only as often as <code>rename-reuse</code> happens, and nobody has measured that. rigid still has no users, so its practical benefit remains untested.</li></ul>
+<h2 id="what-it-does-establish">What it does establish</h2>
+<p>On this program, with a mature type checker as the baseline, rigid caught eleven of twelve breakages to TypeScript's ten — including one class TypeScript structurally cannot catch.</p>
+<p>The honest reading is not "rigid wins." It is that the two find different things for different reasons. TypeScript's type system is far stronger than E0212 and always will be; what rigid adds is <strong>identity</strong> — noticing that a name's meaning changed, as distinct from a name failing to resolve — and that is not something a type checker can be improved into. It needs a record of the previous resolution, which is what the sidecar is.</p>
+<p>And detection is still not value. Catching <code>rename-reuse</code> matters as often as <code>rename-reuse</code> happens, which nobody has measured.</p>
+  </main>
+</div>
+
+<footer>
+  <div class="wrap frow">
+    <div>rigid — <a href="https://dudas.ai">David Dudas</a></div>
+  </div>
+</footer>
+
+<script src="site.js?v=9"></script>
+</body>
+</html>

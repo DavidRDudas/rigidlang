@@ -1,0 +1,57 @@
+fetching 300 packages x up to 16 versions
+  10/300
+  20/300
+  30/300
+  40/300
+  50/300
+  60/300
+  70/300
+  80/300
+  90/300
+  100/300
+  110/300
+  120/300
+  130/300
+  140/300
+  150/300
+  160/300
+  170/300
+  180/300
+  190/300
+  200/300
+  210/300
+  220/300
+  230/300
+  240/300
+  250/300
+  260/300
+  270/300
+  280/300
+  290/300
+  300/300
+Capability drift across real npm releases
+==========================================================
+299 packages, 3832 versions, 3533 consecutive upgrades examined
+
+step      upgrades   widened     rate
+patch         2056        11     0.5%
+minor          942        15     1.6%
+major          535        36     6.7%
+
+42 of 299 packages widened at least once.
+
+capabilities gained on a patch: env x6, rand x4, time x4, fs x3, net x1, proc x1
+capabilities gained on a minor: env x4, net x3, time x3, proc x2, fs x2, rand x1, install-hook x1
+capabilities gained on a major: rand x12, env x12, proc x8, time x7, fs x6
+
+Sample of patch-level widenings (the kind a lockfile lets through):
+  chai 5.3.1 -> 5.3.2   +rand +time
+  @humanwhocodes/retry 0.3.0 -> 0.3.1   +rand
+  tinyglobby 0.2.10 -> 0.2.11   +env +time
+  tinyglobby 0.2.14 -> 0.2.15   +fs
+  json5 2.0.0 -> 2.0.1   +rand
+  empathic 0.0.0 -> 0.0.1   +env +fs
+  @babel/code-frame 7.24.1 -> 7.24.2   +env
+  @babel/helper-compilation-targets 7.25.7 -> 7.25.9   +env
+  glob 13.0.1 -> 13.0.2   +env +fs +net +rand +time
+  sift 15.1.1 -> 15.1.2   +env +proc

@@ -1,0 +1,41 @@
+{
+  "format": "rigid-bind/0",
+  "definitions": {
+    "build_all": "sha256:3c728820de25e19e664e6025018a7e1fd950cb343ba8c3289a8b2eb93ee62b50",
+    "build_one": "sha256:df3fc35449520c47c50c4b90b4743c00f79146e75aea622732892e94850cb441",
+    "main": "sha256:2826327ffb79ab0323c5cdc4f9a0235da3a521d956457ac9e63a7b7abc5aa66f",
+    "nav_for": "sha256:068a496c3bf93ee0d8a55cc413e022d93098d46139c37bc25bf3fc41fb1d9683",
+    "out_name": "sha256:7c8d79f6173a5ec9abaaea8e1df0e40416f62fb7299c5a25cb68d15b01e9e26b",
+    "test_nav": "sha256:bf068ff957b0d92305a84e636553dbe2d52de89e80405e51c83735771adb9ac0",
+    "test_out_name": "sha256:fedac43928c6c758213c24dc454ae54ee1d737fb776d0ec259035282d3c7b314",
+    "write_page": "sha256:0b1fa92f5831fe48f25925f9b0c6c827ee44b32b3acaeaa6be9cb9d5b80f20ec"
+  },
+  "quarantine": {},
+  "module_hash": "sha256:95eca5775cde9c05229b807cf59a4e3f6561033da033cd03b8ad99726c5dbdd4",
+  "references": {
+    "ends_with": {
+      "target": "strings.rg#ends_with",
+      "hash": "sha256:11e2b1a603d0b7db3c27fa2a561b81c09b956f87bf745ff6a4fdd7b2b3a0a77f"
+    },
+    "link": {
+      "target": "html.rg#link",
+      "hash": "sha256:9ec6ff6c6a5e6391fc07754644aba3f0955c167d87f0541ee65401255f8b34ac"
+    },
+    "page": {
+      "target": "html.rg#page",
+      "hash": "sha256:6bd6f2f1a630220e36d21893d5531fa80a9654f7865fc86e60b15f534c6903e7"
+    },
+    "render": {
+      "target": "md.rg#render",
+      "hash": "sha256:580e6ec461fd025aa8e6b3d39bc58e4771df79383210a8f99f8cb318751cdea8"
+    },
+    "split_lines": {
+      "target": "strings.rg#split_lines",
+      "hash": "sha256:4c3bf1bdb8f2ffe9b931ce6264e041773174d9e163ac0275339a2f201da309a9"
+    },
+    "title_of": {
+      "target": "md.rg#title_of",
+      "hash": "sha256:c83feb1d23fc9dbe6c9d6cf0389ce35b2f68846f6d9b51de2dd55334f936a433"
+    }
+  }
+}

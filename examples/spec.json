@@ -1,0 +1,174 @@
+{
+  "boundary": [
+    "pipeline.rg#log_line"
+  ],
+  "format": "rigid-spec/1",
+  "modules": [
+    {
+      "definitions": [
+        {
+          "arity": 1,
+          "covered_by": [],
+          "deps": [],
+          "hash": "sha256:81718aa5b249e24f651c3e06f1c7ab83769c249128124610c6ece181c5e85541",
+          "io": false,
+          "kind": "fn",
+          "name": "fmt",
+          "rdeps": [
+            "pipeline.rg#audit",
+            "pipeline.rg#notify",
+            "pipeline.rg#archive",
+            "pipeline.rg#archive_v2"
+          ],
+          "ref": "pipeline.rg#fmt"
+        },
+        {
+          "arity": 1,
+          "covered_by": [],
+          "deps": [
+            "pipeline.rg#log_line",
+            "pipeline.rg#fmt"
+          ],
+          "hash": "sha256:bf1cb8850593fb23722f13d9670991b5451c3a1a0484bafcefa3762e9b9dbc60",
+          "io": true,
+          "kind": "fn",
+          "name": "audit",
+          "rdeps": [
+            "pipeline.rg#escalate",
+            "pipeline.rg#handlers"
+          ],
+          "ref": "pipeline.rg#audit"
+        },
+        {
+          "arity": 1,
+          "covered_by": [],
+          "deps": [
+            "pipeline.rg#fmt"
+          ],
+          "hash": "sha256:48ad0f3ea01d944da8bd80387777b68fb23f3be3b64bfdf9720849d627d53136",
+          "io": false,
+          "kind": "fn",
+          "name": "notify",
+          "rdeps": [
+            "pipeline.rg#handlers"
+          ],
+          "ref": "pipeline.rg#notify"
+        },
+        {
+          "arity": 1,
+          "covered_by": [],
+          "deps": [],
+          "hash": "sha256:71b09058a13d83f5b10139c6b07bb43c935f2a6da8fe68bb23da7b1e4a80a3d2",
+          "io": false,
+          "kind": "fn",
+          "name": "close_out",
+          "rdeps": [
+            "pipeline.rg#handlers"
+          ],
+          "ref": "pipeline.rg#close_out"
+        },
+        {
+          "arity": 1,
+          "covered_by": [],
+          "deps": [
+            "pipeline.rg#fmt"
+          ],
+          "hash": "sha256:ab5efc48051e6c4e636c51f1c859b5d5fca1e740041871262d5210ba1d67381b",
+          "io": false,
+          "kind": "fn",
+          "name": "archive",
+          "rdeps": [
+            "pipeline.rg#handlers"
+          ],
+          "ref": "pipeline.rg#archive"
+        },
+        {
+          "arity": 1,
+          "covered_by": [],
+          "deps": [
+            "pipeline.rg#fmt"
+          ],
+          "hash": "sha256:2781115475f23b176398e926270f94328f19c80beaf7f3a0589681121e34f5ae",
+          "io": false,
+          "kind": "fn",
+          "name": "archive_v2",
+          "rdeps": [],
+          "ref": "pipeline.rg#archive_v2"
+        },
+        {
+          "arity": 1,
+          "covered_by": [],
+          "deps": [
+            "pipeline.rg#audit"
+          ],
+          "hash": "sha256:939645e0014a0d0d65c162915fe3ce0fab9832718c84f68dafc70ce5c8a62df1",
+          "io": true,
+          "kind": "fn",
+          "name": "escalate",
+          "rdeps": [
+            "pipeline.rg#handlers"
+          ],
+          "ref": "pipeline.rg#escalate"
+        },
+        {
+          "arity": 2,
+          "covered_by": [],
+          "deps": [
+            "pipeline.rg#handlers"
+          ],
+          "hash": "sha256:e7e9e368a442d01943833def91d38d4c2e234cf3cb5b079311a87ae76186187e",
+          "io": true,
+          "kind": "fn",
+          "name": "handle",
+          "rdeps": [],
+          "ref": "pipeline.rg#handle"
+        },
+        {
+          "covered_by": [],
+          "deps": [
+            "pipeline.rg#audit",
+            "pipeline.rg#notify",
+            "pipeline.rg#close_out",
+            "pipeline.rg#archive",
+            "pipeline.rg#escalate"
+          ],
+          "entries": {
+            "archived": "pipeline.rg#archive",
+            "breach": "pipeline.rg#escalate",
+            "closed": "pipeline.rg#close_out",
+            "created": "pipeline.rg#audit",
+            "updated": "pipeline.rg#notify"
+          },
+          "hash": "sha256:e17952f86a725a775a5565b2e0b066494213a98269333bd29257ef61c3e52583",
+          "kind": "table",
+          "name": "handlers",
+          "rdeps": [
+            "pipeline.rg#handle"
+          ],
+          "ref": "pipeline.rg#handlers"
+        },
+        {
+          "arity": 1,
+          "covered_by": [],
+          "deps": [],
+          "hash": "sha256:03f419507a4e6a2bd33b2caffa68cc2aaea89cdd1f525e949308840102fc3c8e",
+          "host": "console.error",
+          "io": true,
+          "kind": "extern",
+          "name": "log_line",
+          "rdeps": [
+            "pipeline.rg#audit"
+          ],
+          "ref": "pipeline.rg#log_line"
+        }
+      ],
+      "module_hash": "sha256:c4e5c3a3d2f6faa1064b6c725dce11b478fb3f4276b19da47ba143703fe118f3",
+      "path": "pipeline.rg"
+    }
+  ],
+  "stats": {
+    "call_sites": 7,
+    "definitions": 10,
+    "modules": 1
+  }
+}

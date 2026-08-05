@@ -1,0 +1,27 @@
+# Rust build output. 334 MB — never commit this.
+/target/
+
+# Machine-local caches. These are derived from content hashes and are
+# rebuilt on demand, so they carry no information across machines.
+.rigid-testcache.json
+.rigid-checkcache.json
+.rigid-memo.json
+.rigid-store/
+
+# NOT ignored, deliberately: *.rg.bind.json. The binding sidecars are
+# resolution lockfiles — they are how the compiler notices a name's meaning
+# changed, so they belong in version control like Cargo.lock.
+
+.DS_Store
+*.bak
+
+# Benchmark baseline toolchain (installed by: cd bench && npm install)
+bench/node_modules/
+
+# Python bytecode from the evidence scripts.
+__pycache__/
+*.pyc
+
+# The npm tarball scan's raw cache — 200 KB of derived data, rebuilt by
+# `python3 evidence/capdrift.py`. The *results* it produces are committed.
+evidence/capdrift-cache.json

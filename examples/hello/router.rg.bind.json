@@ -1,0 +1,17 @@
+{
+  "format": "rigid-bind/0",
+  "definitions": {
+    "handlers": "sha256:17f9193bbec9eb41c2b9063d654f0d6f791be9790ca8805af2808fdcfc194bad",
+    "on_created": "sha256:f14156441ddaef3064cd0c120bfb0aef549f523a8fc1c74737fc09651d609ea5",
+    "on_resolved": "sha256:323accf48e34cceaa1bbd8b4ad3d381177fb2ecb6d00eb40f9ebf4b96407ebc9",
+    "route": "sha256:7ec43afc8b36ff59c74aedfa7fddd9e73684349139234ef0bea9e9261af6cf08"
+  },
+  "quarantine": {
+    "table:handlers": {
+      "created": "sha256:f14156441ddaef3064cd0c120bfb0aef549f523a8fc1c74737fc09651d609ea5",
+      "resolved": "sha256:323accf48e34cceaa1bbd8b4ad3d381177fb2ecb6d00eb40f9ebf4b96407ebc9"
+    }
+  },
+  "module_hash": "sha256:ea6845db595d5155f74f136c64f9a1898ff95e51fc9cdce4d79409d619a47f10",
+  "references": {}
+}

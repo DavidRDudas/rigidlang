@@ -1,0 +1,24 @@
+{
+  "format": "rigid-bind/0",
+  "definitions": {
+    "blocks": "sha256:867d52dc3b33e8f24d548a148a3bdf5fdcbef769465a4b6e3d57461494187e48",
+    "classic": "sha256:f176a5322850279184e2b91e5909826105e353ac3851dd5dc45d21fde2e7661c",
+    "fx_mul": "sha256:d1213ced0fd1ce336e3137ecb305762be3ae3ddb2627a3d104c0273bd242ab8b",
+    "iterate": "sha256:289d99d8eb7e82a31dec4e10346c276514e1f5f5cc01bc6a23f0c4311715548b",
+    "main": "sha256:dcf036d82dc0a53ba8c46c7afc212341f9e603bad27f1a536c753c68e0bdfccc",
+    "palettes": "sha256:0d85e8d35f0825a757585fcbbabb6eb52735e7836bd5fa116ae837e79b6bb0c6",
+    "row": "sha256:789ab9e4a050ae8b318adc48d7423ff899d94ee5907d02954b52d39ceba98e11",
+    "scale": "sha256:ceeb475cd0eff604117832489596b25e2b0a3d44d9c5a195555e7ad7bd0004f5",
+    "test_far_point_escapes": "sha256:2fdad4e405d4452dddc3932474a9a9da34a5ada7d8e6d4911476f4dd01956491",
+    "test_origin_is_inside": "sha256:d1e5d676a631fae70cd9cf37bf0b8f029d0ee96653fcf49d9ca2a5661a45488c",
+    "test_palette_ends": "sha256:aea530ee48fcd09b501e1edde7c9b41db6051a4859530bd6f672362d0e556ae0"
+  },
+  "quarantine": {
+    "table:palettes": {
+      "blocks": "sha256:867d52dc3b33e8f24d548a148a3bdf5fdcbef769465a4b6e3d57461494187e48",
+      "classic": "sha256:f176a5322850279184e2b91e5909826105e353ac3851dd5dc45d21fde2e7661c"
+    }
+  },
+  "module_hash": "sha256:8ce5ea08c55725262c0000a3b83e819e24d1a0a25e6bd2ad46c91b435aa5ef44",
+  "references": {}
+}

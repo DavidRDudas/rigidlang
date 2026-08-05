@@ -1,0 +1,29 @@
+{
+  "format": "rigid-bind/0",
+  "definitions": {
+    "commands": "sha256:36d281f1c0189bfaf4b0bc9199e41567f5df36662467742dccd0df19da7918da",
+    "do_add": "sha256:43be4c17b3e304bb33185a9d43ccd1f431e079f4277f36a80e92c8b3c86c51b4",
+    "do_done": "sha256:84c974e3c4c383c4655edda5bd6ae369ae4bc3d8dfe07f93b84f4a5d3aa48b66",
+    "do_list": "sha256:81ae6292b8c58a46f3f6902e5db17bf3eabacefd2e93c597189c4fa02337705e",
+    "load": "sha256:8070690d624f1d15260b3eceb4d1e4eb674c73090acddd4dfb4fa283789d15b1",
+    "main": "sha256:7a9bed59d10ff8dd663aa43e7ae44bc032a2f999d1afea3de7860c4050cacb66",
+    "mark_done": "sha256:d97a55a20320aa4ddf831cefd5d18ae82f23b82c14d310ce0a9beaf1fb473c06",
+    "render": "sha256:33a3bd8a5340a5ec720c215ad42c616f7df9bf64db665c6450f92e4fffc95e4e",
+    "save": "sha256:d0f73dce90b1ac84b2655a6f302e6bfd66df4638eb3c14eee4488a28951c7595",
+    "split_lines": "sha256:4c3bf1bdb8f2ffe9b931ce6264e041773174d9e163ac0275339a2f201da309a9",
+    "test_render": "sha256:dfa429087af27e773dfff7e496a4e2b9a5e443986bd68312e2bb6163c79b4110",
+    "test_split": "sha256:3566750a85574eb54080f321db3c177e061659a16672ba850698850e09f12b1a",
+    "test_toggle": "sha256:68a514252d2d057d5b83fcdc71f3ffc6e646f0491da55b610f2f7d25f666ba21",
+    "todo_path": "sha256:dc0af7a43f8871ee60d5f855b3c478991622d503045f4c652e293709bb41e6cc",
+    "toggle": "sha256:bdcfc3f4915135decad54d16fa715e679f30ab3090125e850baed86c80bfc416"
+  },
+  "quarantine": {
+    "table:commands": {
+      "add": "sha256:43be4c17b3e304bb33185a9d43ccd1f431e079f4277f36a80e92c8b3c86c51b4",
+      "done": "sha256:84c974e3c4c383c4655edda5bd6ae369ae4bc3d8dfe07f93b84f4a5d3aa48b66",
+      "list": "sha256:81ae6292b8c58a46f3f6902e5db17bf3eabacefd2e93c597189c4fa02337705e"
+    }
+  },
+  "module_hash": "sha256:10ba3456714252804125eec3531068abf0f6f80c6e1bec8a6dd0e5ea456af976",
+  "references": {}
+}

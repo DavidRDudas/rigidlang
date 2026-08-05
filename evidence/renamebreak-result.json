@@ -1,0 +1,182 @@
+{
+ "repos": [
+  {
+   "repo": "requests",
+   "url": "https://github.com/psf/requests",
+   "commits": 2500,
+   "renames": 8,
+   "dangling": 0,
+   "findings": []
+  },
+  {
+   "repo": "flask",
+   "url": "https://github.com/pallets/flask",
+   "commits": 2500,
+   "renames": 46,
+   "dangling": 0,
+   "findings": []
+  },
+  {
+   "repo": "click",
+   "url": "https://github.com/pallets/click",
+   "commits": 2500,
+   "renames": 53,
+   "dangling": 0,
+   "findings": []
+  },
+  {
+   "repo": "black",
+   "url": "https://github.com/psf/black",
+   "commits": 2300,
+   "renames": 31,
+   "dangling": 1,
+   "findings": [
+    {
+     "repo": "black",
+     "commit": "06f2790b5ca3",
+     "file": "black.py",
+     "old": "FileMode",
+     "new": "Mode",
+     "still_referenced_in": [
+      "blackd.py",
+      "tests/test_black.py"
+     ]
+    }
+   ]
+  },
+  {
+   "repo": "httpx",
+   "url": "https://github.com/encode/httpx",
+   "commits": 1523,
+   "renames": 74,
+   "dangling": 4,
+   "findings": [
+    {
+     "repo": "httpx",
+     "commit": "e284b84bf936",
+     "file": "httpx/client.py",
+     "old": "Client",
+     "new": "AsyncClient",
+     "still_referenced_in": [
+      "httpx/__init__.py"
+     ]
+    },
+    {
+     "repo": "httpx",
+     "commit": "1f9d0154df48",
+     "file": "httpx/backends/asyncio.py",
+     "old": "Event",
+     "new": "Lock",
+     "still_referenced_in": [
+      "tests/conftest.py"
+     ]
+    },
+    {
+     "repo": "httpx",
+     "commit": "1f9d0154df48",
+     "file": "httpx/backends/trio.py",
+     "old": "Event",
+     "new": "Lock",
+     "still_referenced_in": [
+      "tests/conftest.py"
+     ]
+    },
+    {
+     "repo": "httpx",
+     "commit": "09f94edd93fb",
+     "file": "httpx/_content_streams.py",
+     "old": "encode",
+     "new": "encode_request",
+     "still_referenced_in": [
+      "httpx/_auth.py",
+      "httpx/_client.py",
+      "httpx/_config.py",
+      "httpx/_models.py",
+      "httpx/_transports/wsgi.py",
+      "httpx/_utils.py"
+     ]
+    }
+   ]
+  },
+  {
+   "repo": "attrs",
+   "url": "https://github.com/python-attrs/attrs",
+   "commits": 1834,
+   "renames": 25,
+   "dangling": 1,
+   "findings": [
+    {
+     "repo": "attrs",
+     "commit": "03c10ad0ef88",
+     "file": "src/attr/_make.py",
+     "old": "attr",
+     "new": "attrib",
+     "still_referenced_in": [
+      "conftest.py",
+      "tests/test_annotations.py",
+      "tests/test_config.py",
+      "tests/test_converters.py",
+      "tests/test_dark_magic.py",
+      "tests/test_dunders.py"
+     ]
+    }
+   ]
+  },
+  {
+   "repo": "fastapi",
+   "url": "https://github.com/tiangolo/fastapi",
+   "commits": 2500,
+   "renames": 11,
+   "dangling": 0,
+   "findings": []
+  },
+  {
+   "repo": "scrapy",
+   "url": "https://github.com/scrapy/scrapy",
+   "commits": 2500,
+   "renames": 113,
+   "dangling": 0,
+   "findings": []
+  },
+  {
+   "repo": "more-itertools",
+   "url": "https://github.com/more-itertools/more-itertools",
+   "commits": 2426,
+   "renames": 34,
+   "dangling": 1,
+   "findings": [
+    {
+     "repo": "more-itertools",
+     "commit": "0b4b93105cd4",
+     "file": "more_itertools/more.py",
+     "old": "unique_from_each",
+     "new": "unique_to_each",
+     "still_referenced_in": [
+      "more_itertools/tests/test_more.py"
+     ]
+    }
+   ]
+  },
+  {
+   "repo": "pytest",
+   "url": "https://github.com/pytest-dev/pytest",
+   "commits": 2500,
+   "renames": 63,
+   "dangling": 1,
+   "findings": [
+    {
+     "repo": "pytest",
+     "commit": "5c0dcffce5f3",
+     "file": "src/_pytest/python.py",
+     "old": "CallSpec2",
+     "new": "CallSpec",
+     "still_referenced_in": [
+      "testing/deprecated_test.py"
+     ]
+    }
+   ]
+  }
+ ],
+ "total_renames": 458,
+ "total_dangling": 8
+}

@@ -1,0 +1,36 @@
+{
+  "format": "rigid-bind/0",
+  "definitions": {
+    "apply_group": "sha256:4fc73bd938195a13ca2ebfeb44ce02e440dd78e7a6698291bbf7addfd5990aa1",
+    "auth_plugins": "sha256:2b4f2d2980ccf3de32b4b65b7bd264906f70da13e05005c23c306117c42cda95",
+    "authenticate": "sha256:5ae50b22d94fa3e39fe29efbd8718fba387aad5e379aad12764da246b9e68a3c",
+    "basic_auth": "sha256:d26c01a3702f3aa4e2546243ded5aaf1206310f27f8ae92b05024e4042652751",
+    "bearer_auth": "sha256:1db68216724c7926f41fff17a83aaa3960fe0ab358c3b0696e445beaf2503cd2",
+    "color_formatter": "sha256:786129d8aa6fe53b966f75a34ba1245a8059dc9ca60bc61bf5a33dc11271991d",
+    "digest_auth": "sha256:4f8512ba70def06fb0ec1d75c5f2cd50c76294e6c7553a48cf1c3d56b8311750",
+    "format_body": "sha256:66205754d416bb4dba93941ad0c23c2daec2db8bf8f18a7e11eb183604e8dc3c",
+    "formatters": "sha256:148b172717297e73dd22ee9698b1ec23df3227086336eb28be2f87590d934651",
+    "headers_formatter": "sha256:06cc6eeb42aec3f2cf5512e1f823d6b85e9a7b86926712601ce5bba19787136e",
+    "is_valid_mime": "sha256:1fbe84bd660d92bee7140a859914633fff3c56af1148669be0c61d2aa62b4a9a",
+    "json_formatter": "sha256:9aa37605871be3baeb132d80b6e8de28b991d6963fb6da23700dd5f7895dbe4a",
+    "test_auth": "sha256:42c82f59d8c33458c1f421aa1f115212aba06adac9e730f90818b85b35c409e1",
+    "test_bad_mime": "sha256:eb884e128752d3f80cb986570e4651b24e7c4ccf49f242684e7e950c7f484000",
+    "test_format": "sha256:94e6d2a202996acce0038596c9f2c7c1962635cfed1523f8a6ecd1b6f6c5fd45",
+    "xml_formatter": "sha256:a6f08c14032f18a4cee6dcd80b96f3983becd74ef09a1821dafd6a38a8831abd"
+  },
+  "quarantine": {
+    "table:auth_plugins": {
+      "basic": "sha256:d26c01a3702f3aa4e2546243ded5aaf1206310f27f8ae92b05024e4042652751",
+      "bearer": "sha256:1db68216724c7926f41fff17a83aaa3960fe0ab358c3b0696e445beaf2503cd2",
+      "digest": "sha256:4f8512ba70def06fb0ec1d75c5f2cd50c76294e6c7553a48cf1c3d56b8311750"
+    },
+    "table:formatters": {
+      "colors": "sha256:786129d8aa6fe53b966f75a34ba1245a8059dc9ca60bc61bf5a33dc11271991d",
+      "headers": "sha256:06cc6eeb42aec3f2cf5512e1f823d6b85e9a7b86926712601ce5bba19787136e",
+      "json": "sha256:9aa37605871be3baeb132d80b6e8de28b991d6963fb6da23700dd5f7895dbe4a",
+      "xml": "sha256:a6f08c14032f18a4cee6dcd80b96f3983becd74ef09a1821dafd6a38a8831abd"
+    }
+  },
+  "module_hash": "sha256:a36051db5ef089c09b4cc2b5f5fefda69db348f4b2488062cef821eaf337a02b",
+  "references": {}
+}

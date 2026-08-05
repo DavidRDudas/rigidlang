@@ -1,0 +1,23 @@
+[package]
+name = "rigid"
+version = "0.0.1"
+edition = "2021"
+description = "v0 kernel: a text-first, content-addressed language core. Working name only."
+
+[lib]
+name = "rigid"
+path = "src/lib.rs"
+# rlib for the CLI; cdylib for the browser playground (wasm32).
+crate-type = ["rlib", "cdylib"]
+
+[[bin]]
+name = "rigid"
+path = "src/main.rs"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+
+[profile.release]
+opt-level = 2

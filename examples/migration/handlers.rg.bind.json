@@ -1,0 +1,35 @@
+{
+  "format": "rigid-bind/0",
+  "definitions": {
+    "archive": "sha256:67d4d3cc787df19f5df8ded27e5c1cd5acb7179dffddd70c2b1931ad9b9ca861",
+    "audit": "sha256:c0c8cd5bb43c1e4cb13a39cd700564221689af1e0fa57a5a774e402888d66a8d",
+    "escalate": "sha256:f55fd21314f67a6d8abe8ccf4de7f08e4e8215e40dd6aae7552a04b0e6d415df",
+    "lifecycle": "sha256:8e2c3f43ed469e5a6e9f3a433c2f95602ce388803bd7c53b22ff7902c3726efa",
+    "notify": "sha256:001fec323b6906c0a979266ea225958c2b75ede7368f8395b3345feb396f7c6c",
+    "page_oncall": "sha256:1e915ef1e7e1814d7326d624fd7335ca6821c2c3793156bfdb0d0d22ca35d05a",
+    "queue_oncall": "sha256:f637b1ab283ff6c0ae4abb401b31c3b4f996bc525d64f6ad7192bece65224c22"
+  },
+  "quarantine": {
+    "dyn:escalate#0": {
+      "page_oncall": "sha256:1e915ef1e7e1814d7326d624fd7335ca6821c2c3793156bfdb0d0d22ca35d05a",
+      "queue_oncall": "sha256:f637b1ab283ff6c0ae4abb401b31c3b4f996bc525d64f6ad7192bece65224c22"
+    },
+    "table:lifecycle": {
+      "sla.breach": "sha256:f55fd21314f67a6d8abe8ccf4de7f08e4e8215e40dd6aae7552a04b0e6d415df",
+      "task.closed": "sha256:67d4d3cc787df19f5df8ded27e5c1cd5acb7179dffddd70c2b1931ad9b9ca861",
+      "task.created": "sha256:c0c8cd5bb43c1e4cb13a39cd700564221689af1e0fa57a5a774e402888d66a8d",
+      "task.updated": "sha256:001fec323b6906c0a979266ea225958c2b75ede7368f8395b3345feb396f7c6c"
+    }
+  },
+  "module_hash": "sha256:9d6addf667d536b6b17d1cd9ca9bd2fa2b9cac77463616902f839181c4ec9486",
+  "references": {
+    "breach_risk": {
+      "target": "core.rg#breach_risk",
+      "hash": "sha256:e4625486f4a8c63de6ac6ce94df4495718d37bf6e114562f93ba401a6266cdcb"
+    },
+    "priority": {
+      "target": "core.rg#priority",
+      "hash": "sha256:a80e4dce32606d1c2f53880274747939cce2003bc209a766e9f05b9d83bc58d5"
+    }
+  }
+}

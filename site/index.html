@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>rigid — content-addressed code that still lives in files</title>
+<meta name="description" content="A definition is identified by the hash of its structure, not its name — the idea Unison established, derived from ordinary text files instead of a database, plus declared dispatch sets that keep the call graph exact through string-keyed dispatch.">
+<meta property="og:title" content="rigid — content-addressed code that still lives in files">
+<meta property="og:description" content="Rename anything and nothing downstream reruns. Unison's idea, without giving up files and git.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cg stroke='%232F4BD8' stroke-width='2.4' fill='none'%3E%3Cpath d='M8 24 L16 8 L24 24'/%3E%3C/g%3E%3Cg fill='%232F4BD8'%3E%3Ccircle cx='8' cy='24' r='3.4'/%3E%3Ccircle cx='16' cy='8' r='3.4'/%3E%3Ccircle cx='24' cy='24' r='3.4'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=9">
+<script>
+  try {
+    var t = localStorage.getItem("rigid-theme");
+    if (t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches)
+      document.documentElement.classList.add("dark");
+  } catch (e) {}
+</script>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap inner">
+    <a class="brand" href="index.html">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><g stroke="var(--accent)" stroke-width="2.4" fill="none"><path d="M8 24 L16 8 L24 24"/></g><g fill="var(--accent)"><circle cx="8" cy="24" r="3.4"/><circle cx="16" cy="8" r="3.4"/><circle cx="24" cy="24" r="3.4"/></g></svg>
+      <b>rigid</b><span class="ver">v1.8</span>
+    </a>
+    <select class="navpick" id="navpick" aria-label="Go to page">
+      <optgroup label="Language">
+        <option value="index.html" selected>Home</option>
+        <option value="learn.html">Learn</option>
+        <option value="play.html">Playground</option>
+        <option value="spec.html">Specification</option>
+        <option value="tools.html">Tools</option>
+      </optgroup>
+      <optgroup label="Design">
+        <option value="paper.html">Paper</option>
+        <option value="quarantine.html">Quarantine</option>
+      </optgroup>
+      <optgroup label="Evidence">
+        <option value="evidence.html">Evidence</option>
+        <option value="benchmark.html">Benchmark</option>
+        <option value="experiment.html">Experiment</option>
+        <option value="study.html">Study</option>
+        <option value="prereg.html">Pre-registration</option>
+      </optgroup>
+    </select>
+    <a class="lnk gh" href="https://github.com/DavidRDudas/rigidlang" aria-label="GitHub">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+    </a>
+    <button class="tbtn" id="theme" aria-label="Toggle dark mode">
+      <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+      <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <h1>Content-addressed code that still lives in files</h1>
+        <p class="tag">A definition is identified by the SHA-256 of its structure rather than by its name, so
+          renaming and reformatting cannot invalidate anything downstream. Unison established that idea by
+          replacing the medium — code in a database, edited through a codebase manager. rigid derives the same
+          identity from ordinary text files, and adds one thing Unison has no need for: dispatch sets you
+          declare, so the call graph stays exact even where a runtime string picks the target.</p>
+        <div class="btnrow">
+          <a class="btn" href="play.html">Try it in your browser</a>
+          <a class="btn sec" href="learn.html">Learn the language</a>
+          <a class="btn sec" href="#install">Install</a>
+        </div>
+        <p class="small muted" style="margin-top:1.1rem">Research prototype. Rust toolchain, no users yet,
+          48 verified demo steps.</p>
+      </div>
+      <div class="file">
+        <div class="name">triage.rg</div>
+<pre class="code"><code class="rg">fn severity(impact, urgency) {
+  return impact * urgency;
+}
+
+fn route_net(rec) {
+  return "net:" + str(severity(rec.i, rec.u));
+}
+
+fn route_db(rec) {
+  return "db:" + str(severity(rec.i, rec.u));
+}
+
+// keyed by a string; the target set is declared
+table routes {
+  "network"  -> route_net,
+  "database" -> route_db,
+}
+
+fn handle(kind, i, u) {
+  return routes[kind]({ i: i, u: u });
+}
+
+fn test_severity() {
+  return severity(3, 3) == 9;
+}</code></pre>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+<section id="identity">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Identity</h2>
+      <p>A definition's hash covers its canonical form: bound names erased, and every reference replaced by
+        the hash of what it points at. So the hash pins one exact implementation together with everything it
+        transitively depends on.</p>
+      <p>Rename the function or its parameter and the hash is unchanged, because the names you bind are a
+        metadata layer. Change what it computes and the hash moves. Try both:</p>
+    </div>
+
+    <div class="demo">
+      <div class="demo-grid">
+        <div class="demo-l">
+<pre class="code"><code class="rg" id="demo-code">fn damage(hp, hit) {
+  return hp - hit;
+}</code></pre>
+          <div class="ctlgrp">
+            <span class="ctllbl">rename it</span>
+            <div class="ctlrow">
+              <button class="chip" data-name="0" aria-pressed="true">damage</button>
+              <button class="chip" data-name="1">take_hit</button>
+              <button class="chip" data-name="2">apply_damage</button>
+            </div>
+          </div>
+          <div class="ctlgrp">
+            <span class="ctllbl">change what it computes</span>
+            <div class="ctlrow">
+              <button class="chip" data-body="0" aria-pressed="true">normal</button>
+              <button class="chip" data-body="1">critical ×2</button>
+              <button class="chip" data-body="2">armor +5</button>
+            </div>
+          </div>
+        </div>
+        <div class="demo-r">
+          <div class="klabel">as first written</div>
+          <div class="hashv">sha256:51e00ffda76426bb01d99f0fe5d5bb3ebedab8711a3be637ea54326def588b7f</div>
+          <div class="klabel">now</div>
+          <div class="hashv live" id="demo-hash"></div>
+          <span class="verdict" id="demo-verdict"></span>
+          <p class="small muted" id="demo-note" style="margin:.8rem 0 0"></p>
+        </div>
+      </div>
+    </div>
+    <p class="small muted" style="margin-top:.75rem">Hashes above are real output from <code>rigid hash</code>.</p>
+  </div>
+</section>
+
+<section id="why">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>What that gives you</h2>
+      <p>Four consequences of hashing structure instead of trusting names. Every terminal block below is
+        copied from a run.</p>
+    </div>
+
+    <div class="feat">
+      <div>
+        <h3>Renames are repaired mechanically</h3>
+        <p>When a definition is renamed, the compiler still recognises it by hash and finds it under the new
+          name. The diagnostic carries a typed fix, so repair is one command — including call sites in
+          modules you never opened.</p>
+<pre class="term"><code><span class="pr">$</span> rigid check
+<span class="er">error[E0201]</span> app.rg:1:10: unresolved import 'shout' from
+  "words.rg" — the pinned definition (sha256:f2aeacb386b8…)
+  now exists under the name 'yell'
+
+<span class="pr">$</span> rigid fix --apply
+<span class="ok">applied: 3 occurrences of 'shout' -> 'yell' in app.rg
+converged: check is green</span></code></pre>
+      </div>
+
+      <div>
+        <h3>A name cannot silently change meaning</h3>
+        <p>If a name is reused for a different definition, every existing reference to it would quietly point
+          somewhere new. rigid refuses, and names both hashes. Accepting the new meaning is a separate,
+          explicit command.</p>
+        <p>Run against strict TypeScript on the same breakage, <code>tsc</code> compiles it clean — correctly,
+          by its own rules, because it has no record of what the name meant before.
+          <a href="benchmark.html">See the benchmark</a>.</p>
+<pre class="term"><code><span class="pr">$</span> rigid check
+<span class="er">error[E0202]</span> app.rg:1:10: 'shout' from "words.rg" no longer
+  means what it meant: the pinned definition
+  (sha256:f2aeacb386b8…) is now named 'yell', and 'shout'
+  now names a different definition (sha256:a9dd7e003ea9…).
+  Refusing to silently rebind. Run `rigid rebind
+  app.rg#shout` to accept the new meaning.</code></pre>
+      </div>
+
+      <div>
+        <h3>Renaming is free; changing behaviour is not</h3>
+        <p>A test's hash covers its whole dependency cone, and bound names are erased from it. So renaming
+          and reformatting cannot invalidate a cache, and changing what code computes always does. Below is a
+          real run on <code>examples/press</code> — four modules, 54 definitions, 22 tests.</p>
+<pre class="term"><code><span class="pr">$</span> <span class="cm"># renamed every local and parameter in split_lines,</span>
+<span class="pr">$</span> <span class="cm"># reflowed it, added comments. Then:</span>
+<span class="pr">$</span> rigid test
+<span class="ok">0 executed, 22 skipped via content-address cache, 0 failed</span>
+
+<span class="pr">$</span> <span class="cm"># now change what split_lines actually does:</span>
+<span class="pr">$</span> rigid test
+<span class="w">FAIL  strings.rg#test_split</span>
+<span class="w">FAIL  md.rg#test_h1</span>          <span class="cm">… and 3 more</span>
+<span class="ok">8 executed, 14 skipped via content-address cache, 5 failed</span></code></pre>
+        <p class="small muted">Those 8 are exactly the tests whose dependency cone contains
+          <code>split_lines</code> — checked against the graph, with nothing wrongly skipped and no rerun
+          wasted. Every other build cache keys on file text, so the first case would have rerun all 22.</p>
+      </div>
+
+      <div>
+        <h3>Dependencies stay exact through string-keyed dispatch</h3>
+        <p>A <code>table</code> is itself a definition in the graph, so a handler reached only by a runtime
+          string key is still a normal edge — queryable in both directions, at the CLI. A type checker
+          follows these too when the handlers are named by identifier; what it cannot follow is a target
+          named by a computed string, or a registry assembled where it cannot see. Measured, with the
+          cases each one misses, in <a href="benchmark.html">the benchmark</a>.</p>
+<pre class="term"><code><span class="pr">$</span> rigid rdeps "route.rg#on_created"
+rdeps of route.rg#on_created (1 result):
+  route.rg#handlers  <span class="hl">sha256:d010715b9f7c…</span>
+
+<span class="pr">$</span> rigid rdeps "route.rg#handlers"
+rdeps of route.rg#handlers (1 result):
+  route.rg#route  <span class="hl">sha256:759fa57bf790…</span></code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="language">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>The language</h2>
+      <p>Small on purpose: integers, floats, strings, lists, records, functions,
+        <code>while</code>, <code>for (x in xs)</code>, <code>if</code> as a statement and as an
+        expression, and <code>fn(x) { … }</code> lambdas. No type system. A program is a folder of
+        <code>.rg</code> files with no manifest and no build step.</p>
+    </div>
+
+    <div class="hero-grid">
+      <div class="file">
+        <div class="name">flow.rg</div>
+<pre class="code"><code class="rg">fn sum_to(n) {
+  let total = 0;
+  let i = 1;
+  while (i &lt;= n) {
+    total = total + i;
+    i = i + 1;
+  }
+  return total;
+}
+
+fn checked_div(a, b) {
+  return if (b == 0)
+    fail({ code: 400, msg: "division by zero" })
+  else a / b;
+}
+
+fn safe_div(a, b) {
+  let r = try(checked_div(a, b));
+  return if (r.ok) r.value else 0 - 1;
+}
+
+fn greet(name) !io {
+  return print("hello, " + name);
+}</code></pre>
+      </div>
+      <div>
+        <h3>Three commands do everything</h3>
+<pre class="term"><code><span class="pr">$</span> rigid check   <span class="cm"># parse, resolve, hash, reconcile</span>
+<span class="pr">$</span> rigid run flow.rg#sum_to 100
+5050
+<span class="pr">$</span> rigid test    <span class="cm"># every test_* function</span></code></pre>
+        <p class="small muted">Twenty-four commands in all. <code>deps</code> / <code>rdeps</code> /
+          <code>why</code> query the graph; <code>diff</code> grades a text diff by identity;
+          <code>caps</code> lists what reaches the outside world; <code>merge</code> is a three-way merge
+          over identities; <code>attest</code> and <code>trust</code> bind claims to a hash;
+          <code>dead</code> and <code>dup</code> find what nothing reaches and what is written twice.
+          Plus <code>fmt</code>, <code>repl</code>, an LSP, and <code>build --target js</code> to run
+          programs on Node or in a browser.</p>
+        <div class="next" style="margin-top:1.25rem">
+          <a href="learn.html">
+            <div class="h">Learn the language →</div>
+            <div class="d">Variables, functions, loops, records, errors, modules, and dispatch — from zero.</div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="machines">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>The graph is readable by machines too</h2>
+      <p><code>rigid describe</code> emits the whole workspace as one JSON document: every definition with
+        its identity, arity, effects, exact dependencies and reverse dependencies, table topology, and test
+        coverage. None of it is reconstructed from the text — it is the compiler's own resolution, written
+        down.</p>
+    </div>
+
+    <p style="max-width:74ch">Here is why that matters, in one program written twice. Both versions dispatch
+      on a runtime string key. Only one of them lets you find out what that key can select.</p>
+
+    <div class="hero-grid" style="margin-top:1.5rem">
+      <div class="file">
+        <div class="name">legacy.js — ordinary platform-script style</div>
+<pre class="code"><code>const R = {};
+function reg(k, f) { R[k] = f; }
+
+reg("created", audit);
+reg("updated", notify);
+const h = R;                    // aliased
+h["closed"] = close_out;
+if (true) { reg("archived", archive); }
+reg("breach", escalate);
+
+function handle(kind, sev) {
+  const f = R[kind];            // which functions can f be?
+  if (!f) return "drop:" + kind;
+  return f({ kind: kind, sev: sev });
+}</code></pre>
+        <div class="cap"><p>The registry is built at runtime by five separate statements — one through an
+          alias, one inside a conditional. Nothing in the text lists what <code>R[kind]</code> can be, so
+          "which handlers perform IO?" has no answer without running it.</p></div>
+      </div>
+      <div class="file">
+        <div class="name">rigid describe — the same registry, enumerated</div>
+<pre class="code"><code>{
+  "name": "handlers",
+  "kind": "table",
+  "hash": "sha256:e17952f86a72…",
+  "entries": {
+    "created":  "pipeline.rg#audit",
+    "updated":  "pipeline.rg#notify",
+    "closed":   "pipeline.rg#close_out",
+    "archived": "pipeline.rg#archive",
+    "breach":   "pipeline.rg#escalate"
+  },
+  "rdeps": ["pipeline.rg#handle"]
+}</code></pre>
+        <div class="cap"><p>The same five targets, named — plus the hash that pins the set and the
+          dispatcher that reaches it. Two of those handlers are <code>!io</code>, so the effect reaching
+          <code>handle</code> is traceable hop by hop.</p></div>
+      </div>
+    </div>
+
+    <div class="hero-grid" style="margin-top:2.25rem">
+      <div>
+        <h3>A model was asked five dependency questions about each</h3>
+        <p class="small muted" style="margin-top:.5rem">Answers scored against the compiler's own graph, by a
+          fresh model over the API — not the one that built any of this. Five runs.</p>
+        <div class="meters" style="margin-top:1.25rem">
+          <div class="meter dim">
+            <div class="lbl2"><span class="who">A — convoluted JavaScript</span><span class="score">~2/5</span></div>
+            <div class="track"><div class="fill" style="width:40%"></div></div>
+          </div>
+          <div class="meter">
+            <div class="lbl2"><span class="who">B — rigid source</span><span class="score">4/5</span></div>
+            <div class="track"><div class="fill" style="width:80%"></div></div>
+          </div>
+          <div class="meter">
+            <div class="lbl2"><span class="who">C — rigid source + spec</span><span class="score">5/5</span></div>
+            <div class="track"><div class="fill" style="width:100%"></div></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="small muted">What C got right every run and the others did not was the transitive effect
+          surface — including the dispatch table on the path.</p>
+        <p class="small muted">This is a pilot, not a benchmark: one program, five questions, five runs, one
+          model. It is also the one result on this site that was not re-run while the site was built, because
+          it needs a model over an API rather than a terminal.</p>
+        <div class="next" style="margin-top:1rem">
+          <a href="experiment.html">
+            <div class="h">The pilot, in full →</div>
+            <div class="d">Design, results, the three recorded defects, and why it is a pilot.</div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="evidence">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Does declaring dispatch targets cost anything?</h2>
+      <p>The fair objection to writing your value sets down is that real registries might be enormous. The
+        corpus and method were pre-registered before anything was downloaded: five widely-used Python projects
+        with plugin and registry architectures, 983 source files, 430 dispatch tables pooled.</p>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="v">1</div><div class="k">median targets per site</div></div>
+      <div class="stat"><div class="v">5</div><div class="k">90th percentile</div></div>
+      <div class="stat"><div class="v">88.8%</div><div class="k">have four or fewer</div></div>
+      <div class="stat"><div class="v">3.0%</div><div class="k">exceed ten</div></div>
+    </div>
+
+    <div class="bar" role="img" aria-label="88.8% of dispatch tables declare four targets or fewer, 8.2% declare five to ten, 3.0% declare more than ten">
+      <i class="s1" style="width:88.8%"></i><i class="s2" style="width:8.2%"></i><i class="s3" style="width:3.0%"></i>
+    </div>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--seq1)"></i>≤ 4 targets <b>88.8%</b></span>
+      <span><i class="sw" style="background:var(--seq2)"></i>5–10 <b>8.2%</b></span>
+      <span><i class="sw" style="background:var(--seq3)"></i>&gt; 10 <b>3.0%</b></span>
+    </div>
+
+    <p class="small muted" style="margin-top:1.1rem;max-width:72ch">The tail is real: the largest is pygments'
+      602-entry lexer registry, and a catalogue genuinely has that many entries. Separately, 2.05% of
+      non-method call sites resolve their target from a runtime string. One run was discarded for a
+      methodological error, which is recorded in the pre-registration.
+      Method and per-project distribution:
+      <a href="study.html">the study</a>.</p>
+  </div>
+</section>
+
+<section id="install">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Install</h2>
+      <p>Requires a Rust toolchain from <a href="https://rustup.rs">rustup.rs</a>. Nothing else.</p>
+    </div>
+    <div class="file" style="max-width:70ch">
+      <div class="name">shell <button class="chip" data-copy="#install-cmds" style="float:right;margin-top:-.2rem">copy</button></div>
+<pre class="term" id="install-cmds"><code>git clone https://github.com/DavidRDudas/rigidlang
+cd rigid-lang
+cargo build --release
+export PATH="$PWD/target/release:$PATH"</code></pre>
+    </div>
+    <p style="margin-top:1.25rem">Then check everything the site claims:</p>
+    <div class="file" style="max-width:70ch">
+      <div class="name">shell</div>
+<pre class="term"><code><span class="pr">$</span> ./demo.sh                    <span class="cm"># 48 verified steps</span>
+<span class="pr">$</span> rigid test  --root examples/triage
+<span class="pr">$</span> rigid rdeps "score.rg#severity" --root examples/triage</code></pre>
+    </div>
+    <p class="small muted" style="margin-top:1rem">
+      <a href="learn.html">The tutorial</a> walks the language from the first program.
+      <a href="spec.html">The specification</a> is the grammar and canonical form. <a href="paper.html">The paper</a> is
+      the design and its evaluation.</p>
+  </div>
+</section>
+
+<section id="status">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Status and limits</h2>
+      <p>rigid is a working research prototype. Everything on this page is a green step in
+        <code>demo.sh</code>. The gaps are listed here so you find them now rather than later.</p>
+    </div>
+    <ul class="bare" style="max-width:72ch">
+      <li><b>No users.</b> One author wrote it, with AI assistance. Nobody else has built anything in it, and
+        no reviewer has tried to break the design.</li>
+      <li><b>No type system.</b> Argument counts are checked at every call form, and a literal argument is
+        checked against the parameter's inferred value domain (<code>E0212</code>) — enough to reject
+        <code>severity("high", 5)</code>, nowhere near what a type checker does. Everything else is
+        deferred while the identity model is being validated.</li>
+      <li><b>Calling a closure is quarantined.</b> <code>fn(x) { … }</code> exists and captures — each
+        lambda is lifted to a top-level definition with its own hash, which <code>rdeps</code> reaches — but
+        the call site still has to name its possible targets with <code>dyn</code>. A generic
+        higher-order function cannot yet live in a shared library for that reason.</li>
+      <li><b>Foreign functions are declared one at a time.</b> <code>extern fn</code> puts a host function in
+        the graph with checked arity and propagated effects. There is no npm-scale binding story, no async,
+        no promises.</li>
+      <li><b>The study covers five projects in one language.</b> Pre-registered and independently replicated,
+        but not a large-corpus result.</li>
+    </ul>
+    <div class="note" style="margin-top:1.75rem;max-width:74ch">
+      <span class="lbl">prior art</span>
+      <p><b>Unison got here first.</b> Identifying definitions by the hash of their structure, non-breaking
+        renames, no builds — that is Unison's idea, and Scrapscript explored the same ground. If you want the
+        mature version of content-addressed code, go and read theirs.</p>
+      <p>What differs here is the price. Unison stores code in a database and you work through its codebase
+        manager; text files are a staging area. rigid keeps ordinary files, ordinary diffs, ordinary git, and
+        recomputes identity from them — which is why it needs machinery Unison does not: a per-module
+        lockfile pinning what each imported name resolved to, and a hard refusal (<code>E0202</code>) when a
+        name starts meaning something else.</p>
+      <p>The one thing that is ours: <b>declared dispatch sets</b>. A <code>table</code> is a definition in
+        the graph, so a handler reached only by a runtime string key is still an exact edge, and effects
+        propagate through it. In Unison — and in every other language — a map of functions is just data, and
+        the call graph stops there. That is what
+        <a href="benchmark.html">the benchmark</a> and
+        <a href="experiment.html">the pilot</a> are actually about.</p>
+      <p class="small" style="margin-bottom:0">Unison is also far ahead on everything else: types, algebraic
+        effects, distributed execution, and users.</p>
+    </div>
+
+    <p class="small muted" style="margin-top:1.5rem">The language is named after Kripke's <em>rigid
+      designator</em>: a reference that picks out the same thing in every possible world. A hash-pinned
+      definition does exactly that, which is why the name fits.</p>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap frow">
+    <div>rigid — <a href="https://dudas.ai">David Dudas</a></div>
+  </div>
+</footer>
+
+<script src="site.js?v=9"></script>
+</body>
+</html>

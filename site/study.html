@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Study — rigid</title>
+<meta name="description" content="How wide real dispatch tables are, measured over five Python projects.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cg stroke='%232F4BD8' stroke-width='2.4' fill='none'%3E%3Cpath d='M8 24 L16 8 L24 24'/%3E%3C/g%3E%3Cg fill='%232F4BD8'%3E%3Ccircle cx='8' cy='24' r='3.4'/%3E%3Ccircle cx='16' cy='8' r='3.4'/%3E%3Ccircle cx='24' cy='24' r='3.4'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=9">
+<script>
+  try {
+    var t = localStorage.getItem("rigid-theme");
+    if (t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches)
+      document.documentElement.classList.add("dark");
+  } catch (e) {}
+</script>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap inner">
+    <a class="brand" href="index.html">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><g stroke="var(--accent)" stroke-width="2.4" fill="none"><path d="M8 24 L16 8 L24 24"/></g><g fill="var(--accent)"><circle cx="8" cy="24" r="3.4"/><circle cx="16" cy="8" r="3.4"/><circle cx="24" cy="24" r="3.4"/></g></svg>
+      <b>rigid</b><span class="ver">v1.8</span>
+    </a>
+    <select class="navpick" id="navpick" aria-label="Go to page">
+      <optgroup label="Language">
+        <option value="index.html">Home</option>
+        <option value="learn.html">Learn</option>
+        <option value="play.html">Playground</option>
+        <option value="spec.html">Specification</option>
+        <option value="tools.html">Tools</option>
+      </optgroup>
+      <optgroup label="Design">
+        <option value="paper.html">Paper</option>
+        <option value="quarantine.html">Quarantine</option>
+      </optgroup>
+      <optgroup label="Evidence">
+        <option value="evidence.html">Evidence</option>
+        <option value="benchmark.html">Benchmark</option>
+        <option value="experiment.html">Experiment</option>
+        <option value="study.html" selected>Study</option>
+        <option value="prereg.html">Pre-registration</option>
+      </optgroup>
+    </select>
+    <a class="lnk gh" href="https://github.com/DavidRDudas/rigidlang" aria-label="GitHub">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+    </a>
+    <button class="tbtn" id="theme" aria-label="Toggle dark mode">
+      <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+      <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+  </div>
+</nav>
+
+<div class="wrap doc">
+  <aside class="toc">
+    <div class="t">Study</div>
+    <ol>
+      <li><a href="#hypothesis">Hypothesis</a></li>
+      <li><a href="#corpus">Corpus</a></li>
+      <li><a href="#result-1-width-distribution-430-dispatch-tables-registries-pooled">Result 1 — width distribution (430 dispatch tables/registries pooled)</a></li>
+      <li><a href="#result-2-how-much-dispatch-is-statically-knowable-at-all">Result 2 — how much dispatch is statically knowable at all</a></li>
+      <li><a href="#result-3-ground-truth-cross-check">Result 3 — ground truth cross-check</a></li>
+      <li><a href="#honest-limits">Honest limits</a></li>
+      <li><a href="#what-this-licenses-the-paper-to-say">What this licenses the paper to say</a></li>
+    </ol>
+  </aside>
+  <main class="doc-body">
+<h1>Dispatch-width study: do declared target sets stay narrow?</h1>
+<p>Corpus and method were registered before any repository was fetched; see <a href="prereg.html">the pre-registration</a>. Two protocol deviations are recorded there, including one discarded run.</p>
+<h2 id="hypothesis">Hypothesis</h2>
+<p>H1: in real string-dispatched code, dispatch sets are narrow — median width &lt;= 4, and most sites are singletons. H0 (falsifier): median width &gt; 10, or most dispatch sites wide (&gt;10).</p>
+<h2 id="corpus">Corpus</h2>
+<p>Five widely-used Python projects with plugin/registry architectures, named in advance: flask, scrapy, celery, pygments, httpie. 983 non-test source files parsed.</p>
+<h2 id="result-1-width-distribution-430-dispatch-tables-registries-pooled">Result 1 — width distribution (430 dispatch tables/registries pooled)</h2>
+<div class="tbl-wrap"><table class="cmp"><thead><tr><th>statistic</th><th>targets</th></tr></thead><tbody><tr><td>median</td><td>1</td></tr><tr><td>p75</td><td>3</td></tr><tr><td>p90</td><td>5</td></tr><tr><td>p95</td><td>9</td></tr><tr><td>p99</td><td>35</td></tr><tr><td>max</td><td>602 (pygments lexer registry)</td></tr></tbody></table></div>
+<p><strong>88.8%</strong> of dispatch tables have &lt;= 4 targets. <strong>3.0%</strong> have &gt; 10.</p>
+<p>Per project (median / p90 / max): flask 2 / 3 / 3 · scrapy 1 / 3 / 6 · celery 1 / 5 / 220 · pygments 9 / 50 / 602 · httpie 2 / 5 / 6</p>
+<p><strong>H1 is supported; H0 is not met.</strong> The distribution is sharply right-skewed: a large majority of dispatch is narrow, with a thin tail of very large registries concentrated in projects whose <em>purpose</em> is a catalogue (pygments' lexers, celery's task/state maps).</p>
+<h2 id="result-2-how-much-dispatch-is-statically-knowable-at-all">Result 2 — how much dispatch is statically knowable at all</h2>
+<p>Pooled non-method call sites: 25,980 direct, 543 unbounded (runtime-string imports: <code>import_string</code>, <code>load_object</code>, computed <code>getattr</code>). <strong>2.05%</strong> of non-method call sites are unbounded in the original source — small in count, but these are exactly the sites where "who calls this?" is unanswerable today, and they sit at the architectural seams (plugin loading, middleware chains, entry points).</p>
+<h2 id="result-3-ground-truth-cross-check">Result 3 — ground truth cross-check</h2>
+<p>httpie's formatter and auth plugin registries (<code>plugins/registry.py</code>, <code>output/processing.py</code>) were migrated by hand to rigid. The analyzer predicted widths of 4 and 3; <code>rigid exactness</code> on the migrated module reports:</p>
+<pre class="code"><code>call sites: 8 · singleton: 6 · table sites: 2 (widths 4, 3)
+exactness: 0.750</code></pre>
+<p>Analyzer and language agree on the widths. In the original, the same question ("which formatters can run here?") has no static answer: the registry is populated at import time and iterated dynamically. After migration, <code>rdeps json_formatter</code> answers it exactly.</p>
+<h2 id="honest-limits">Honest limits</h2>
+<ul class='tight'><li>Five projects, one language (Python). Not a random sample; chosen by architecture type, though fixed before any measurement.</li><li>The analyzer is conservative and matches only the pre-declared patterns; dispatch it cannot see is not counted (coverage is reported as raw counts, not claimed as complete).</li><li>Only one cluster was hand-migrated; a full migration could split or merge sites and shift widths.</li><li>Python method calls (26,575 pooled) are receiver-polymorphic and were deliberately excluded from the exactness denominator rather than counted as singletons — the error that invalidated run 1. rigid has no methods, so there is no clean mapping for them; this is the largest threat to external validity.</li><li>Run by the language's author. The pre-registration constrains that; it does not eliminate it.</li></ul>
+<h2 id="what-this-licenses-the-paper-to-say">What this licenses the paper to say</h2>
+<p>That declared-set width in real dispatch-heavy code is narrow at the median (1) and at p90 (5), with a thin heavy tail; that the tail is concentrated in catalogue-shaped registries where a wide set is honest rather than a modelling failure; and that the exactness metric agrees with hand migration on a real cluster. It does not license claims about whole-system migration cost, non-Python ecosystems, or developer behaviour over time.</p>
+  </main>
+</div>
+
+<footer>
+  <div class="wrap frow">
+    <div>rigid — <a href="https://dudas.ai">David Dudas</a></div>
+  </div>
+</footer>
+
+<script src="site.js?v=9"></script>
+</body>
+</html>

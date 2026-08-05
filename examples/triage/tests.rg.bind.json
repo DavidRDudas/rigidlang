@@ -1,0 +1,25 @@
+{
+  "format": "rigid-bind/0",
+  "definitions": {
+    "test_clamp_passthrough": "sha256:0c7939c2fa79f2046f4fe9a6ad9fa83795312b52eee378f62a07a1c70f28c662",
+    "test_p1_boundary": "sha256:c1db7a306d3644397fc6adc27f08b00923e796f81fd3d214b7af56adfc1eb70c",
+    "test_severity_clamps": "sha256:03f492b3e059a2960291f2f6c1e0bb8529e44e9600a5b77ab8d415736cccb2ba",
+    "test_severity_floor": "sha256:976ecc483e5cd4c749a6b7d9297b52cc02ebadbb8fee006235de64d57a794315"
+  },
+  "quarantine": {},
+  "module_hash": "sha256:a19380dda1aeff04a2afeaedda953d70699af01946cb109a3a4780e6eb8a7747",
+  "references": {
+    "clampi": {
+      "target": "score.rg#clampi",
+      "hash": "sha256:8ccd2404522be91a59bfed166dbd5465cb38f736d563b0d61a4631d6b1b09995"
+    },
+    "is_p1": {
+      "target": "score.rg#is_p1",
+      "hash": "sha256:32f8205e3550afd8b09ec30ac0be47ea3fc85fe6abc4b9765f957fb0750e7d83"
+    },
+    "severity": {
+      "target": "score.rg#severity",
+      "hash": "sha256:27f823254df68f2937d0872713b658cb54a8163fa6d94b10e41f4f64d5e5776c"
+    }
+  }
+}

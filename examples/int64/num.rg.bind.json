@@ -1,0 +1,13 @@
+{
+  "format": "rigid-bind/0",
+  "definitions": {
+    "big": "sha256:04e0b442f762ceac67738da90326452d9519b0edc1ab83c103938803f6051ae3",
+    "big_plus_one": "sha256:d351e73fe1d8c7d1842db930833197d7851760b4f2a259cc44e5e5359e5ddb5b",
+    "test_product_is_exact": "sha256:9493e0b0d330a8e4b3f8703d2a74dea0ea6a1303e68ae78e49c0a70db4d4c54b",
+    "test_successor_is_visible": "sha256:2f4fdd881552a7c272879b8971d42f1d06f08f464fad52ea45fafc9ba162db31",
+    "wide_product": "sha256:f80eacfea8aeea63867dbe7df2f3bb640ac755048ee80b6cfbeb982e47bd5e78"
+  },
+  "quarantine": {},
+  "module_hash": "sha256:727d5470bf27af4dfce057759ef06292939f1833c808edfc023be4e85393170c",
+  "references": {}
+}

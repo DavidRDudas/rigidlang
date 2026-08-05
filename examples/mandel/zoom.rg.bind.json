@@ -1,0 +1,32 @@
+{
+  "format": "rigid-bind/0",
+  "definitions": {
+    "depth_at": "sha256:fe1314217a2bb6d0269fac4c4e6a0dd04d194a28f63ddc8d2ef2a652d03e149c",
+    "elephant": "sha256:d30931d30fe3ff8f58d54f47750830dbe14c7a5e4e95261f49aa82f5d36a646c",
+    "frame_text": "sha256:53dc3a9f7e8311809b662d529064f1c0a38fd4d1bb5f10060269aae8e82887c0",
+    "fx_mul": "sha256:5849615a443ce29b46d8e2a06f636125f6b703b80180563beb80bb097d2feb7a",
+    "iterate": "sha256:a072f60ce64e042c03965566c9ed1341b5be9dc94f696b3623d87aca22453c8a",
+    "main": "sha256:17c69f88cc6c10ebf2139f26c64a2966caef95a5929e6ab55e5d1dc4cf3ee878",
+    "play": "sha256:aa67a2684ed41f9889164f0daa9602434284190cfe6090cb1a2418edd72445c9",
+    "render_row": "sha256:a4f7cdb02e935aa9c48fd8bdc98184d3cf9596ecf6da73bb76311bba2ff4c570",
+    "scale": "sha256:adbf6c95f40c2cd08c1db6629765affd960ed26081d84c32adabcb58a1ffe306",
+    "seahorse": "sha256:b5c92afc64ab122dcc5affc7ce2cb3ab8e61cecf8c0f0c3b4ba98225b96925da",
+    "shade": "sha256:f176a5322850279184e2b91e5909826105e353ac3851dd5dc45d21fde2e7661c",
+    "span_at": "sha256:47350338e9d1f5fc6426e80ca05bad4421b5671e2fa4333135436470e8ac2cbf",
+    "spike": "sha256:b360332bc1b8db3a82c8bd36a6c771aa64dc8166b2eac27cdb3e539b0bd7aa80",
+    "targets": "sha256:02c50a7620c348e8fe513b5f59b67daf8e31745639abf77a1e2ff9c932edfc7b",
+    "test_center_inside": "sha256:7eacd9192d9dcfae47fbf24a663980f1a3b2b70df6603fe40e754822421025c7",
+    "test_depth_grows": "sha256:e9b4b94f8c9b45c2f294d521c62d3b26ab7ab6df1b8a7002b50262a8fc08f92b",
+    "test_span_shrinks": "sha256:4d2e9b9ce33dcd270b1e5353aa733783d8c90b256b0735cf1c202716fec73c5a",
+    "test_target_lookup": "sha256:b24d411551fa33641cedb9ecae2633fdef246a7e054221da1595e672ea486f8a"
+  },
+  "quarantine": {
+    "table:targets": {
+      "elephant": "sha256:d30931d30fe3ff8f58d54f47750830dbe14c7a5e4e95261f49aa82f5d36a646c",
+      "seahorse": "sha256:b5c92afc64ab122dcc5affc7ce2cb3ab8e61cecf8c0f0c3b4ba98225b96925da",
+      "spike": "sha256:b360332bc1b8db3a82c8bd36a6c771aa64dc8166b2eac27cdb3e539b0bd7aa80"
+    }
+  },
+  "module_hash": "sha256:b9023dc1e338cbe727b45d6744d5813e153f82beeb0ac9ca4c6b1ad45d72daf3",
+  "references": {}
+}

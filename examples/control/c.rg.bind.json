@@ -1,0 +1,18 @@
+{
+  "format": "rigid-bind/0",
+  "definitions": {
+    "classify": "sha256:e7c3671439b776cf38fa2cd9f2d9f1b179e2c6052aedd122278bee5185d365a8",
+    "evens_upto": "sha256:306765e8222593c1b45ac1fffa1c7ebd986a936bf9a79f59b8e12d41f7ce001d",
+    "spell": "sha256:d6bb9b58562423aa4621442ea82722051a94f5c3f242dfdaebcc221f2e1ad16c",
+    "sum_upto": "sha256:aa18df62f9c6fe140d8a297dae56c353a1545a6299fe280831c08c87a95a8e55",
+    "test_classify": "sha256:9955505d566b9dc467a211919a9664ce67bc2d5d908c333f619f8e488dfe87b9",
+    "test_evens": "sha256:53a2a32c2c586bf5b531b917425daf0e5588b70792340d89332f39d2b0069f41",
+    "test_spell": "sha256:803412cf6d59e7457a191e8159109bd94591c72642cf1d0a2e4bea4c5e1e2a07",
+    "test_sum_upto": "sha256:7a1d619d9b940932a6292670c9166529eddb955ed2158e4fd61ebe8375dc4802",
+    "test_total": "sha256:9cf0205043304222817185d87e4403904bbef3a8beb3a0de90969ed647e037ca",
+    "total": "sha256:b6fd535ab194369408118ed8e52bd09958e555705ecf9783162fe8d40045b09a"
+  },
+  "quarantine": {},
+  "module_hash": "sha256:9771fcfb8e4361a17c3b47a1d9784faaa1b1102cc755ceee74b7cf00296b3483",
+  "references": {}
+}

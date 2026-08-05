@@ -1,0 +1,14 @@
+{
+  "format": "rigid-bind/0",
+  "definitions": {
+    "breach_risk": "sha256:e4625486f4a8c63de6ac6ce94df4495718d37bf6e114562f93ba401a6266cdcb",
+    "label": "sha256:ef9fd3ecde06a8d9b8d555a2b7a3a84b65d6b7aeee7ecc26c81dff5272443b4b",
+    "priority": "sha256:a80e4dce32606d1c2f53880274747939cce2003bc209a766e9f05b9d83bc58d5",
+    "test_label": "sha256:e68bb1d4e08a86c04897565fcc46ba40c27b68f1773b76b7c363457e42743613",
+    "test_priority": "sha256:98b91c56fb381e1af7c9f6a3c2b4727f6944e414ffe288a3e6dc775595c02512",
+    "test_risk": "sha256:888e39e9162c0a8a002cf1374a8d1b80fd1f12a96301fc830b5ea9858b8d29c7"
+  },
+  "quarantine": {},
+  "module_hash": "sha256:28b21dbe21f4495f8a6da94210c0e114691680f7be1bd61325ef40fee2cfd0cd",
+  "references": {}
+}

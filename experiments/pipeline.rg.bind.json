@@ -1,0 +1,26 @@
+{
+  "format": "rigid-bind/0",
+  "definitions": {
+    "archive": "sha256:ab5efc48051e6c4e636c51f1c859b5d5fca1e740041871262d5210ba1d67381b",
+    "archive_v2": "sha256:2781115475f23b176398e926270f94328f19c80beaf7f3a0589681121e34f5ae",
+    "audit": "sha256:bf1cb8850593fb23722f13d9670991b5451c3a1a0484bafcefa3762e9b9dbc60",
+    "close_out": "sha256:71b09058a13d83f5b10139c6b07bb43c935f2a6da8fe68bb23da7b1e4a80a3d2",
+    "escalate": "sha256:939645e0014a0d0d65c162915fe3ce0fab9832718c84f68dafc70ce5c8a62df1",
+    "fmt": "sha256:81718aa5b249e24f651c3e06f1c7ab83769c249128124610c6ece181c5e85541",
+    "handle": "sha256:e7e9e368a442d01943833def91d38d4c2e234cf3cb5b079311a87ae76186187e",
+    "handlers": "sha256:e17952f86a725a775a5565b2e0b066494213a98269333bd29257ef61c3e52583",
+    "log_line": "sha256:03f419507a4e6a2bd33b2caffa68cc2aaea89cdd1f525e949308840102fc3c8e",
+    "notify": "sha256:48ad0f3ea01d944da8bd80387777b68fb23f3be3b64bfdf9720849d627d53136"
+  },
+  "quarantine": {
+    "table:handlers": {
+      "archived": "sha256:ab5efc48051e6c4e636c51f1c859b5d5fca1e740041871262d5210ba1d67381b",
+      "breach": "sha256:939645e0014a0d0d65c162915fe3ce0fab9832718c84f68dafc70ce5c8a62df1",
+      "closed": "sha256:71b09058a13d83f5b10139c6b07bb43c935f2a6da8fe68bb23da7b1e4a80a3d2",
+      "created": "sha256:bf1cb8850593fb23722f13d9670991b5451c3a1a0484bafcefa3762e9b9dbc60",
+      "updated": "sha256:48ad0f3ea01d944da8bd80387777b68fb23f3be3b64bfdf9720849d627d53136"
+    }
+  },
+  "module_hash": "sha256:c4e5c3a3d2f6faa1064b6c725dce11b478fb3f4276b19da47ba143703fe118f3",
+  "references": {}
+}

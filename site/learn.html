@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Learn rigid — the language from the first program</title>
+<meta name="description" content="A tutorial for the rigid language: values, variables, functions, loops, lists, records, errors, tests, modules, effects, and dispatch tables.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cg stroke='%232F4BD8' stroke-width='2.4' fill='none'%3E%3Cpath d='M8 24 L16 8 L24 24'/%3E%3C/g%3E%3Cg fill='%232F4BD8'%3E%3Ccircle cx='8' cy='24' r='3.4'/%3E%3Ccircle cx='16' cy='8' r='3.4'/%3E%3Ccircle cx='24' cy='24' r='3.4'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=9">
+<script>
+  try {
+    var t = localStorage.getItem("rigid-theme");
+    if (t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches)
+      document.documentElement.classList.add("dark");
+  } catch (e) {}
+</script>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap inner">
+    <a class="brand" href="index.html">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><g stroke="var(--accent)" stroke-width="2.4" fill="none"><path d="M8 24 L16 8 L24 24"/></g><g fill="var(--accent)"><circle cx="8" cy="24" r="3.4"/><circle cx="16" cy="8" r="3.4"/><circle cx="24" cy="24" r="3.4"/></g></svg>
+      <b>rigid</b><span class="ver">v1.8</span>
+    </a>
+    <select class="navpick" id="navpick" aria-label="Go to page">
+      <optgroup label="Language">
+        <option value="index.html">Home</option>
+        <option value="learn.html" selected>Learn</option>
+        <option value="play.html">Playground</option>
+        <option value="spec.html">Specification</option>
+        <option value="tools.html">Tools</option>
+      </optgroup>
+      <optgroup label="Design">
+        <option value="paper.html">Paper</option>
+        <option value="quarantine.html">Quarantine</option>
+      </optgroup>
+      <optgroup label="Evidence">
+        <option value="evidence.html">Evidence</option>
+        <option value="benchmark.html">Benchmark</option>
+        <option value="experiment.html">Experiment</option>
+        <option value="study.html">Study</option>
+        <option value="prereg.html">Pre-registration</option>
+      </optgroup>
+    </select>
+    <a class="lnk gh" href="https://github.com/DavidRDudas/rigidlang" aria-label="GitHub">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+    </a>
+    <button class="tbtn" id="theme" aria-label="Toggle dark mode">
+      <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+      <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+  </div>
+</nav>
+
+<div class="wrap doc">
+  <aside class="toc">
+    <div class="t">Tutorial</div>
+    <ol>
+      <li><a href="#install">Install and run</a></li>
+      <li><a href="#commands">The three commands</a></li>
+      <li class="grp" role="presentation">Basics</li>
+      <li><a href="#values">Values</a></li>
+      <li><a href="#variables">Variables</a></li>
+      <li><a href="#functions">Functions</a></li>
+      <li><a href="#conditionals">Conditionals</a></li>
+      <li><a href="#loops">Loops</a></li>
+      <li class="grp" role="presentation">Data</li>
+      <li><a href="#lists">Lists</a></li>
+      <li><a href="#records">Records</a></li>
+      <li><a href="#strings">Strings</a></li>
+      <li><a href="#errors">Errors</a></li>
+      <li class="grp" role="presentation">Programs</li>
+      <li><a href="#tests">Tests</a></li>
+      <li><a href="#modules">Modules</a></li>
+      <li><a href="#effects">Effects</a></li>
+      <li class="grp" role="presentation">What makes it rigid</li>
+      <li><a href="#identity">What identity covers</a></li>
+      <li><a href="#tables">Dispatch tables</a></li>
+      <li><a href="#refs">References and dyn</a></li>
+      <li><a href="#advanced">memo and time travel</a></li>
+      <li class="grp" role="presentation">Reference</li>
+      <li><a href="#missing">What rigid doesn't have</a></li>
+      <li><a href="#cheatsheet">Cheat sheet</a></li>
+    </ol>
+  </aside>
+
+  <main class="doc-body">
+    <h1>Learn rigid</h1>
+    <p class="lead">rigid is a small language: integers, floats, strings, lists, records, functions, two
+      loop forms, and two conditional forms. This page walks all of it from the first program. Every snippet
+      here was run against the compiler.</p>
+    <p>If you have written any C-family language you will recognise most of the syntax. One thing is worth
+      knowing up front: <code>if</code> has two forms — a statement whose <code>else</code> is optional, and
+      an expression whose <code>else</code> is mandatory.</p>
+
+    <h2 id="install">1. Install and run</h2>
+    <p>You need a Rust toolchain from <a href="https://rustup.rs">rustup.rs</a>. There is nothing else to
+      install and no package manager.</p>
+<pre class="term"><code>git clone https://github.com/DavidRDudas/rigidlang
+cd rigid-lang
+cargo build --release
+export PATH="$PWD/target/release:$PATH"</code></pre>
+    <p>A program is a folder of <code>.rg</code> files. No manifest, no project file, no build step. Make a
+      folder and put this in <code>main.rg</code>:</p>
+<pre class="code"><code class="rg">fn main() !io {
+  return print("hello, rigid");
+}</code></pre>
+<pre class="term"><code><span class="pr">$</span> rigid check
+<span class="ok">ok: 1 module(s), 1 definition(s), 1 hashed</span>
+<span class="pr">$</span> rigid run "main.rg#main"
+hello, rigid
+"hello, rigid"</code></pre>
+    <p>You see the text twice because <code>print</code> writes it and also returns it, and
+      <code>run</code> prints whatever the definition returned. The <code>!io</code> marker is required
+      because printing is an effect; <a href="#effects">effects</a> get their own section.</p>
+    <div class="note">
+      <span class="lbl">naming</span>
+      <p>Definitions are addressed as <code>file.rg#name</code>. Quote it in the shell, since
+        <code>#</code> starts a comment in most shells.</p>
+    </div>
+
+    <h2 id="commands">2. The three commands</h2>
+    <p>Almost everything is these three:</p>
+    <table class="cheat">
+      <tr><td>rigid check</td><td>Parse, resolve every name, hash every definition, reconcile the sidecars. This is your compile step.</td></tr>
+      <tr><td>rigid run PATH#NAME args…</td><td>Evaluate one definition and print the result.</td></tr>
+      <tr><td>rigid test</td><td>Run every <code>test_*</code> function. Results are cached by content hash.</td></tr>
+    </table>
+    <p>The first <code>check</code> writes a <code>*.rg.bind.json</code> next to each source file. Those are
+      lockfiles for <em>meaning</em> — they record which definition each imported name resolved to, pinned by
+      hash. Commit them; you never edit them by hand. <a href="#modules">Modules</a> covers what they do.</p>
+    <p>There is also <code>rigid repl --root DIR</code> for a prompt against your workspace, <code>rigid
+      fmt</code> for canonical formatting, <code>rigid deps</code> / <code>rigid rdeps</code> for the
+      dependency graph, and <code>rigid build --target js</code> to compile to JavaScript.</p>
+
+    <h2 id="values">3. Values</h2>
+    <p>There are six kinds of value: integers, floats, strings, lists, records, and function references.</p>
+<pre class="code"><code class="rg">42                      // integer — 64-bit, signed
+"hello"                 // string
+3.14159                 // float
+[1, 2, 3]               // list
+{ name: "ada", age: 36 } // record
+&amp;some_function          // a reference to a definition</code></pre>
+    <p>Integers and floats are separate. Two integers divide as integers, a float on either side promotes the
+      other, and <code>float(n)</code> converts explicitly — nothing is widened behind your back:</p>
+<pre class="code"><code class="rg">7 / 2            // 3     — integer division truncates
+7.0 / 2          // 3.5   — a float promotes the other side
+float(7) / 2     // 3.5   — or convert on purpose
+1 == 1.0         // 1     — equality is numeric across both</code></pre>
+    <p><strong>There is no boolean type.</strong> Comparisons return the
+      integers <code>1</code> and <code>0</code>, and any nonzero integer counts as true:</p>
+<pre class="code"><code class="rg">3 &gt; 2        // 1
+3 == 2       // 0
+if (1) "yes" else "no"   // "yes"
+if (0) "yes" else "no"   // "no"</code></pre>
+    <p>Arithmetic is <code>+ - * / %</code>, on integers and on floats. Integer division truncates; float
+      division does not. <code>+</code> is also concatenation for strings and for lists:</p>
+<pre class="code"><code class="rg">7 / 2              // 3
+7 % 2              // 1
+"foo" + "bar"      // "foobar"
+[1] + [2, 3]       // [1, 2, 3]</code></pre>
+    <p>Comparison operators are <code>== != &lt; &gt; &lt;= &gt;=</code>. The ordering operators take two
+      numbers or two strings, so <code>"a" &lt; "b"</code> is <code>1</code>. Comments are <code>//</code> to
+      the end of the line, and they survive <code>rigid fmt</code>.</p>
+
+    <h2 id="variables">4. Variables</h2>
+    <p><code>let</code> introduces a local. Assigning to it afterwards drops the <code>let</code>:</p>
+<pre class="code"><code class="rg">fn area(w, h) {
+  let a = w * h;
+  return a;
+}</code></pre>
+<pre class="code"><code class="rg">fn counter() {
+  let i = 0;
+  let total = 0;
+  while (i &lt; 5) {
+    total = total + i;   // assignment: no `let`
+    i = i + 1;
+  }
+  return total;          // 10
+}</code></pre>
+    <p>Locals are the only mutable thing in the language. You cannot assign to a definition — top-level
+      functions and tables are immutable, and trying to reassign one is error <code>E0210</code>.</p>
+    <p>Scope is flat for the whole function body rather than per block. A <code>let</code> inside a loop body
+      keeps one stable slot across iterations, and reading it after a loop that never ran gives <code>0</code>.</p>
+    <div class="note">
+      <span class="lbl">identity</span>
+      <p>Local names are erased before hashing. Renaming <code>a</code> to <code>result</code> throughout a
+        function does not change that function's hash — see <a href="#identity">what identity covers</a>.</p>
+    </div>
+
+    <h2 id="functions">5. Functions</h2>
+    <p>A function is <code>fn</code>, a name, parameters, and a body in braces. There is no return type and no
+      parameter types:</p>
+<pre class="code"><code class="rg">fn greet(name) {
+  return "hello, " + name;
+}
+
+fn severity(impact, urgency) {
+  return impact * urgency;
+}</code></pre>
+<pre class="term"><code><span class="pr">$</span> rigid run "basics.rg#greet" world
+"hello, world"</code></pre>
+    <p>Argument counts are checked when you compile, at every call site. This is the one type-like check the
+      language has, and it applies to direct calls, dispatch table entries, and <code>dyn</code> targets:</p>
+<pre class="term"><code><span class="pr">$</span> rigid check
+<span class="er">error[E0209]</span> a.rg:2:19: 'add' has arity 2, called with 1 argument(s)</code></pre>
+    <p>Recursion is fine, including mutual recursion between functions. <code>fn(x) { ... }</code> is an
+      anonymous function, and it captures: each one is lifted to a top-level definition named
+      <code>&lt;enclosing&gt;$&lt;n&gt;</code> with its own hash, and the variables it captures become that
+      definition's leading parameters. So a lambda is a definition like any other —
+      <code>rigid rdeps</code> reaches it, and editing its body moves a hash. Calling one goes through a
+      declared <code>dyn</code> set, covered in section 17.</p>
+
+    <h2 id="conditionals">6. Conditionals</h2>
+    <p><code>if</code> has two forms. The <strong>statement</strong> form takes blocks, chains with
+      <code>else if</code>, and its <code>else</code> is optional:</p>
+<pre class="code"><code class="rg">fn classify(n) {
+  if (n &lt; 0) {
+    return "negative";
+  } else if (n == 0) {
+    return "zero";
+  } else {
+    return "positive";
+  }
+}</code></pre>
+    <p>The <strong>expression</strong> form produces a value, so its <code>else</code> is mandatory. You will
+      see it after <code>return</code> or on the right of a <code>let</code>:</p>
+<pre class="code"><code class="rg">fn absval(n) {
+  return if (n &lt; 0) 0 - n else n;
+}
+
+fn label(score) {
+  let tier = if (score &gt; 90) "high" else "normal";
+  return tier;
+}</code></pre>
+    <p>Chain them with <code>else if</code> for multi-way branching:</p>
+<pre class="code"><code class="rg">fn classify(n) {
+  return if (n &lt; 0) "negative"
+    else if (n == 0) "zero"
+    else "positive";
+}</code></pre>
+<pre class="term"><code><span class="pr">$</span> rigid run "basics.rg#classify" -5
+"negative"
+<span class="pr">$</span> rigid run "basics.rg#classify" 0
+"zero"</code></pre>
+    <div class="note warn">
+      <span class="lbl">gotcha</span>
+      <p>The two forms are different constructs, and the compiler tells them apart by what follows the
+        condition: a <code>{</code> opens a statement block, anything else is the expression. So the
+        expression form always needs its <code>else</code> — there is no value without one.</p>
+    </div>
+
+    <h2 id="loops">7. Loops</h2>
+    <p><strong>rigid has two loops.</strong> <code>for (x in xs)</code> walks a list or the characters of a
+      string:</p>
+<pre class="code"><code class="rg">fn total(xs) {
+  let acc = 0;
+  for (x in xs) {
+    acc = acc + x;
+  }
+  return acc;
+}
+
+fn spell(s) {
+  let out = "";
+  for (c in s) {
+    out = out + c + ".";
+  }
+  return out;              // spell("ab") is "a.b."
+}</code></pre>
+    <p>The loop variable is an ordinary local, so renaming it does not move the function's hash.
+      <code>while</code> is the general form. There is no <code>break</code> and no <code>continue</code>, so
+      a counted loop is written out longhand:</p>
+<pre class="code"><code class="rg">fn sum_to(n) {
+  let total = 0;
+  let i = 1;
+  while (i &lt;= n) {
+    total = total + i;
+    i = i + 1;
+  }
+  return total;
+}</code></pre>
+<pre class="term"><code><span class="pr">$</span> rigid run "flow.rg#sum_to" 100
+5050</code></pre>
+    <p>Walking a list is the same shape, using <code>len</code> for the bound and <code>xs[i]</code> to
+      index:</p>
+<pre class="code"><code class="rg">fn total(xs) {
+  let sum = 0;
+  let i = 0;
+  while (i &lt; len(xs)) {
+    sum = sum + xs[i];
+    i = i + 1;
+  }
+  return sum;
+}</code></pre>
+    <p>Without <code>break</code>, an early exit is a condition on the loop variable — set it past the bound to
+      stop:</p>
+<pre class="code"><code class="rg">fn find(xs, target) {
+  let i = 0;
+  let found = 0 - 1;
+  while (i &lt; len(xs)) {
+    found = if (xs[i] == target) i else found;
+    i = if (xs[i] == target) len(xs) else i + 1;
+  }
+  return found;
+}</code></pre>
+    <p>Recursion is often clearer, and it is the style most of the bundled examples use. Both of these are
+      ordinary rigid; pick whichever reads better:</p>
+<pre class="code"><code class="rg">fn sum_rec(xs, i) {
+  return if (i &gt;= len(xs)) 0 else xs[i] + sum_rec(xs, i + 1);
+}</code></pre>
+
+    <h2 id="lists">8. Lists</h2>
+    <p>Lists are written with square brackets, indexed with <code>xs[i]</code> starting at zero, measured with
+      <code>len</code>, and extended with <code>push</code>. <strong><code>push</code> returns a new list</strong>
+      rather than modifying in place, so you assign the result back:</p>
+<pre class="code"><code class="rg">fn grow() {
+  let xs = [];
+  let i = 1;
+  while (i &lt;= 4) {
+    xs = push(xs, i * i);
+    i = i + 1;
+  }
+  return xs;
+}</code></pre>
+<pre class="term"><code><span class="pr">$</span> rigid run "data.rg#grow"
+[1, 4, 9, 16]</code></pre>
+    <p>Indexing out of bounds is a runtime error, and it is catchable — see <a href="#errors">errors</a>.</p>
+
+    <h2 id="records">9. Records</h2>
+    <p>Records are brace-delimited name/value pairs, read with a dot:</p>
+<pre class="code"><code class="rg">fn user() {
+  return { name: "ada", score: 42 };
+}
+
+fn score_of(u) {
+  return u.score;
+}</code></pre>
+    <p>Records are immutable. To "change" a field, build a new record:</p>
+<pre class="code"><code class="rg">fn bump(u) {
+  return { name: u.name, score: u.score + 1 };
+}</code></pre>
+<pre class="term"><code><span class="pr">$</span> rigid run "data.rg#user"
+{name: "ada", score: 42}</code></pre>
+    <p><strong>Field order is not part of a record's identity.</strong> <code>{ name: "ada", score: 1 }</code>
+      and <code>{ score: 1, name: "ada" }</code> hash identically, because the canonical form sorts fields by
+      name. The field <em>names</em> do matter — renaming <code>name</code> to <code>title</code> is a
+      different record.</p>
+
+    <h2 id="strings">10. Strings</h2>
+    <p>Strings support the escapes <code>\n \t \r \e \" \\</code>. Indexing a string gives a one-character
+      string. The builtins are <code>len</code>, <code>substr(s, start, count)</code>, <code>chars(s)</code>,
+      <code>join(list, separator)</code>, <code>str(n)</code>, and <code>int(s)</code>:</p>
+<pre class="code"><code class="rg">fn text() {
+  let s = "hello world";
+  return substr(s, 6, 5);      // "world"
+}
+
+fn spaced(s) {
+  return join(chars(s), "-");  // "abc" -> "a-b-c"
+}
+
+fn report(n) {
+  return "count=" + str(n);    // ints must be converted explicitly
+}</code></pre>
+    <p><code>"abc"[1]</code> is <code>"b"</code>. <code>int("nope")</code> fails at runtime, which is
+      catchable:</p>
+
+    <h2 id="errors">11. Errors</h2>
+    <p>Errors are values. <code>fail(v)</code> raises any value you like, and <code>try(e)</code> catches it,
+      returning a record: <code>{ ok: 1, value: … }</code> on success or <code>{ ok: 0, error: … }</code> on
+      failure.</p>
+<pre class="code"><code class="rg">fn checked_div(a, b) {
+  return if (b == 0)
+    fail({ code: 400, msg: "division by zero" })
+  else a / b;
+}
+
+fn safe_div(a, b) {
+  let r = try(checked_div(a, b));
+  return if (r.ok) r.value else 0 - 1;
+}</code></pre>
+<pre class="term"><code><span class="pr">$</span> rigid run "data.rg#safe_div" 10 0
+-1</code></pre>
+    <p>Because the payload is an ordinary value, you can inspect it:</p>
+<pre class="code"><code class="rg">fn err_code(a, b) {
+  let r = try(checked_div(a, b));
+  return if (r.ok) 0 else r.error.code;   // 400
+}</code></pre>
+    <p>Runtime errors from builtins are catchable the same way — division by zero, an out-of-bounds index, a
+      failed <code>int()</code> parse, a missing table key:</p>
+<pre class="code"><code class="rg">fn parse_or(s, fallback) {
+  let r = try(int(s));
+  return if (r.ok) r.value else fallback;
+}</code></pre>
+
+    <h2 id="tests">12. Tests</h2>
+    <p>A test is a function whose name starts with <code>test_</code>. It takes no arguments, must be pure, and
+      passes by returning a nonzero value:</p>
+<pre class="code"><code class="rg">fn test_shout() {
+  return shout("hi") == "hi!";
+}
+
+fn test_sum() {
+  let xs = [1, 2, 3, 4];
+  let sum = 0;
+  let i = 0;
+  while (i &lt; len(xs)) {
+    sum = sum + xs[i];
+    i = i + 1;
+  }
+  return sum == 10;
+}</code></pre>
+<pre class="term"><code><span class="pr">$</span> rigid test
+<span class="ok">PASS  tests.rg#test_shout</span>
+<span class="ok">PASS  tests.rg#test_sum</span>
+2 executed, 0 skipped via content-address cache, 0 failed
+
+<span class="pr">$</span> rigid test
+<span class="ok">PASS  tests.rg#test_shout</span>  <span class="cm">[cached — content unchanged, rerun provably identical]</span>
+<span class="ok">PASS  tests.rg#test_sum</span>  <span class="cm">[cached — content unchanged, rerun provably identical]</span>
+0 executed, 2 skipped via content-address cache, 0 failed</code></pre>
+    <p>The second run executed nothing. A test's hash covers everything it transitively depends on, so an
+      unchanged hash means a rerun would do exactly the same work. Edit one function and precisely the tests
+      downstream of it re-execute. The cache lives in <code>.rigid-testcache.json</code>; delete it to force
+      reruns, or pass <code>--no-cache</code>.</p>
+
+    <h2 id="modules">13. Modules</h2>
+    <p>One file is one module. Import by relative path, naming what you want:</p>
+    <div class="file"><div class="name">words.rg</div>
+<pre class="code"><code class="rg">fn shout(s) {
+  return s + "!";
+}</code></pre></div>
+    <div class="file" style="margin-top:1rem"><div class="name">app.rg</div>
+<pre class="code"><code class="rg">import { shout } from "./words.rg";
+
+fn main() !io {
+  return print(shout("hello"));
+}</code></pre></div>
+    <p style="margin-top:1rem">Three modules ship with the compiler, imported the same way with a
+      <code>std/</code> path instead of a relative one:</p>
+<pre class="code"><code class="rg">import { sort, unique } from "std/list.rg";
+import { split, trim } from "std/str.rg";
+import { abs, gcd } from "std/math.rg";</code></pre>
+    <p>They are ordinary rigid, written in the language and tested in it. Only the modules a workspace
+      actually imports are loaded, so using none of them costs nothing.</p>
+    <p style="margin-top:1rem">On the first <code>check</code>, each import is pinned in a sidecar file:</p>
+<pre class="term"><code><span class="pr">$</span> rigid check
+<span class="cm">info[I0402]</span> app.rg:1:10: pinned 'shout' -&gt; words.rg#shout (sha256:f2aeacb386b8…)
+<span class="ok">ok: 3 module(s), 4 definition(s), 4 hashed</span></code></pre>
+    <p>That pin is what makes renames survivable. Rename <code>shout</code> to <code>yell</code> in
+      <code>words.rg</code> and forget the caller, and the compiler recognises the definition by its hash and
+      tells you where it went — then repairs it:</p>
+<pre class="term"><code><span class="pr">$</span> rigid check
+<span class="er">error[E0201]</span> app.rg:1:10: unresolved import 'shout' from "words.rg" —
+  the pinned definition (sha256:f2aeacb386b8…) now exists under the name 'yell'
+
+<span class="pr">$</span> rigid fix --apply
+<span class="ok">applied: 3 occurrences of 'shout' -&gt; 'yell' in app.rg</span>
+<span class="ok">converged: check is green</span></code></pre>
+    <p>The import line and both call sites were rewritten. Now the case that gives the language its name — a
+      different definition takes over the old name:</p>
+<pre class="term"><code><span class="pr">$</span> rigid check
+<span class="er">error[E0202]</span> app.rg:1:10: 'shout' from "words.rg" no longer means what it
+  meant: the pinned definition (sha256:f2aeacb386b8…) is now named 'yell',
+  and 'shout' now names a different definition (sha256:a9dd7e003ea9…).
+  Refusing to silently rebind. Run `rigid rebind app.rg#shout` to accept
+  the new meaning, or rename the reference to 'yell'.</code></pre>
+    <p>In a name-bound language that situation compiles, and every existing call to <code>shout</code> quietly
+      starts doing something else. Here it stops the build and names both hashes. Accepting the new meaning is
+      a deliberate command, <code>rigid rebind</code>, and is never applied automatically.</p>
+    <p>If a dependency is merely <em>edited</em>, that is drift rather than a meaning change: you get
+      <code>W0401</code> and the pin updates. Run <code>rigid check --frozen</code> in CI to turn any required
+      sidecar write into a failure.</p>
+
+    <h2 id="effects">14. Effects</h2>
+    <p>A function that can perform I/O is marked <code>!io</code>. The io builtins are <code>print</code>,
+      <code>input</code>, <code>read_file</code>, and <code>write_file</code>:</p>
+<pre class="code"><code class="rg">fn greet(name) !io {
+  return print("hello, " + name);
+}</code></pre>
+    <p>Leave the marker off and the compiler stops you:</p>
+<pre class="term"><code><span class="pr">$</span> rigid check
+<span class="er">error[E0207]</span> a.rg:2:10: io builtin requires `!io`; declare `fn oops(...) !io`</code></pre>
+    <p><strong>Effects propagate along the real call graph.</strong> Anything that calls an <code>!io</code>
+      function must itself be <code>!io</code>, and this is checked exactly — including through dispatch
+      tables, so a pure-looking dispatcher over a table containing one effectful handler is rejected. The
+      practical consequence is that a function without <code>!io</code> is guaranteed not to touch the outside
+      world, which is what makes tests cacheable and <a href="#advanced"><code>memo</code></a> sound.</p>
+    <p><code>!io</code> is one of a set. When you reach the host through <code>extern</code>, say which part
+      of it you are reaching:</p>
+<pre class="code"><code class="rg">extern fn fetch(url) !net = "globalThis.fetch";
+
+fn download(u) !net {
+  return fetch(u);
+}</code></pre>
+    <p>The vocabulary is <code>!io !fs !net !env !time !rand !proc</code>, and a function must declare every
+      capability it can reach. Because capabilities are part of a definition's identity, an imported function
+      that <em>gains</em> one is a named event — <code>W0405</code> — and a build failure under
+      <code>--frozen</code>. If a dependency you pinned as pure starts reaching the network, you find out from
+      the compiler. <code>rigid caps</code> prints the whole surface with the externs that supply it.</p>
+
+    <h2 id="identity">15. What identity covers</h2>
+    <p>This is the part that surprises people, so it is worth being precise. A definition's identity is the
+      SHA-256 of its canonical form, in which <strong>bound names are erased</strong> and every reference to
+      another definition is replaced by <em>that definition's hash</em>.</p>
+    <p>So renaming a function, its parameters, or its locals does not move its hash. All three of these have
+      the identical identity:</p>
+<pre class="code"><code class="rg">fn shout(s)    { return s + "!"; }
+fn announce(text) { return text + "!"; }
+fn zzz(q)      { return q + "!"; }</code></pre>
+<pre class="term"><code><span class="pr">$</span> rigid hash "m.rg#shout"
+  <span class="hl">sha256:f2aeacb386b85feb14736c4e77ff928113079bc56b93e8799051f5795fc253f2</span>
+<span class="pr">$</span> rigid hash "m.rg#announce"
+  <span class="hl">sha256:f2aeacb386b85feb14736c4e77ff928113079bc56b93e8799051f5795fc253f2</span>
+<span class="pr">$</span> rigid hash "m.rg#zzz"
+  <span class="hl">sha256:f2aeacb386b85feb14736c4e77ff928113079bc56b93e8799051f5795fc253f2</span></code></pre>
+    <p>That is deliberate, and everything else depends on it. Because a rename leaves identity untouched, the
+      compiler can recognise a renamed definition under its new name and repair your call sites. If renaming
+      moved the hash, a rename would be indistinguishable from deleting one function and adding another.</p>
+    <p>Change what the function <em>computes</em> and the hash moves:</p>
+<pre class="term"><code><span class="pr">$</span> <span class="cm"># body changed from + "!" to + "!!!"</span>
+<span class="pr">$</span> rigid hash "m.rg#announce"
+  <span class="er">sha256:b573b5a9846a3d3a0a667469728e5c8b3ff9c21ca36b010dae0036ff70962a19</span></code></pre>
+    <p>But "names never matter" would be wrong. The rule is that names you <strong>bind</strong> are metadata,
+      while names that are <strong>data</strong> are structure:</p>
+    <table class="cheat">
+      <thead><tr><th>Name</th><th>Part of identity?</th><th></th></tr></thead>
+      <tbody>
+        <tr><td>definition name</td><td>no</td><td class="muted">a metadata layer over the graph</td></tr>
+        <tr><td>parameter name</td><td>no</td><td class="muted">erased; slots are positional</td></tr>
+        <tr><td><code>let</code> name</td><td>no</td><td class="muted">erased; slots are positional</td></tr>
+        <tr><td>record field name</td><td><strong>yes</strong></td><td class="muted">the field name is data</td></tr>
+        <tr><td>record field order</td><td>no</td><td class="muted">canonical form sorts by name</td></tr>
+        <tr><td><code>table</code> key</td><td><strong>yes</strong></td><td class="muted">the key is data</td></tr>
+        <tr><td>whitespace, comments</td><td>no</td><td class="muted">they do not survive parsing</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:1rem">One more consequence: because a reference is encoded as the target's hash, your
+      hash changes when anything you transitively depend on changes. A hash pins an exact implementation
+      <em>and</em> its whole dependency cone. That is what makes a cached test result a proof rather than a
+      guess.</p>
+
+    <h2 id="tables">16. Dispatch tables</h2>
+    <p>Most real programs dispatch on a runtime string: an event name, a route, a plugin key. In rigid you
+      write the possible targets down, and the table becomes a definition in the graph:</p>
+<pre class="code"><code class="rg">fn on_created(p)  { return "created:" + str(p); }
+fn on_resolved(p) { return "resolved:" + str(p); }
+
+table handlers {
+  "created"  -&gt; on_created,
+  "resolved" -&gt; on_resolved,
+}
+
+fn route(event, payload) {
+  return handlers[event](payload);
+}</code></pre>
+<pre class="term"><code><span class="pr">$</span> rigid run "route.rg#route" created 5
+"created:5"</code></pre>
+    <p>The key is still ordinary runtime data. What is fixed is the set of things it can select. A key outside
+      the set fails at the boundary and lists what was available:</p>
+<pre class="term"><code><span class="pr">$</span> rigid run "route.rg#route" deleted 5
+<span class="er">runtime error: "no entry \"deleted\" in table 'handlers'
+  (keys: created, resolved)"</span></code></pre>
+    <p>The payoff is that a handler reached only through a string key is still connected in the graph, so
+      "who calls this?" has an exact answer in two hops:</p>
+<pre class="term"><code><span class="pr">$</span> rigid rdeps "route.rg#on_created"
+rdeps of route.rg#on_created (1 result):
+  route.rg#handlers  <span class="hl">sha256:d010715b9f7c…</span>
+
+<span class="pr">$</span> rigid rdeps "route.rg#handlers"
+rdeps of route.rg#handlers (1 result):
+  route.rg#route  <span class="hl">sha256:759fa57bf790…</span></code></pre>
+    <p>Effects and arity flow through the table too: every entry's argument count is checked at compile time,
+      and a dispatcher over a table containing an <code>!io</code> handler must itself be <code>!io</code>.</p>
+
+    <h2 id="refs">17. References and dyn</h2>
+    <p><code>&amp;name</code> makes a first-class reference to a top-level definition. You cannot call one
+      directly — indirect calls are quarantined, and the compiler tells you so:</p>
+<pre class="term"><code><span class="pr">$</span> rigid check
+<span class="er">error[E0204]</span> a.rg:3:30: cannot call the value 'r' directly; indirect calls
+  are quarantined — write `dyn { possible, targets }(r, ...)`
+<span class="cm">info[I0405]</span> a.rg:3:30: inferred quarantine for this call: dyn { f }(r, ...)</code></pre>
+    <p>Note the second line: the compiler works out the set for you. The invocation form declares the possible
+      targets, which are checked against the value at runtime:</p>
+<pre class="code"><code class="rg">fn double(n) { return n * 2; }
+fn triple(n) { return n * 3; }
+
+fn apply_one(which, n) {
+  let f = if (which == 2) &amp;double else &amp;triple;
+  return dyn { double, triple }(f, n);
+}</code></pre>
+<pre class="term"><code><span class="pr">$</span> rigid run "route.rg#apply_one" 2 21
+42</code></pre>
+    <p>Each name in the <code>dyn</code> set is a static edge in the graph, so indirect calls stay visible to
+      <code>deps</code> and <code>rdeps</code>. Use a <code>table</code> when dispatch is keyed by data, and
+      <code>dyn</code> when you are passing a function around.</p>
+
+    <h2 id="advanced">18. memo and time travel</h2>
+    <p>Two features fall out of hashing whole dependency cones.</p>
+    <h3><code>memo</code></h3>
+    <p>Mark a function <code>memo</code> and its results are cached on disk, keyed by the definition's hash
+      plus the arguments:</p>
+<pre class="code"><code class="rg">memo fn slow_square(n) {
+  return n * n;
+}</code></pre>
+    <p>The cache never goes stale, because any change to the function or to anything it depends on changes the
+      hash and therefore the key. Purity is required — if the dependency cone reaches <code>!io</code> you get
+      <code>E0211</code>. The cache is <code>.rigid-memo.json</code> and survives across runs; on this machine
+      a measured workload went from 101ms cold to 3ms on a later process.</p>
+    <h3>Temporal references</h3>
+    <p>Every green <code>check</code> writes each definition into a content store under its hash. You can then
+      call a <em>previous</em> version by hash prefix:</p>
+<pre class="code"><code class="rg">fn compare(s) !io {
+  print("then: " + @"f2aeacb386b8"(s));
+  return "now: " + shout(s);
+}</code></pre>
+    <p>The old version runs against the meanings it had when it was stored. Temporal calls require
+      <code>!io</code>, since a past version's effects are unknown, and they are VM-only for now. The CLI form
+      is <code>rigid recall &lt;prefix&gt; [args]</code>.</p>
+
+    <h2 id="missing">19. What rigid doesn't have</h2>
+    <p>An honest list, so you find these now rather than halfway into a program:</p>
+    <ul class="bare">
+      <li><b>No <code>break</code> or <code>continue</code>.</b> <code>while</code>,
+        <code>for (x in xs)</code>, and recursion.</li>
+      <li><b>Floats exist.</b> <code>3.14</code> is a float, <code>float(n)</code> widens an integer, and
+        mixed arithmetic promotes — but two integers are never widened silently. Compiled to JavaScript, a
+        rigid integer becomes a <code>BigInt</code>, so all 64 bits survive.</li>
+      <li><b>No booleans.</b> Comparisons yield <code>1</code> and <code>0</code>; zero is false.</li>
+      <li><b>No <code>&amp;&amp;</code> or <code>||</code>.</b> Nest the conditions, or combine the
+        <code>1</code>/<code>0</code> results with <code>*</code> for and, <code>+</code> for or.</li>
+      <li><b>Calling a closure is quarantined.</b> <code>fn(x) { ... }</code> exists and captures, but the
+        call site still names its possible targets with <code>dyn</code>.</li>
+      <li><b>No type system.</b> Argument counts are checked, and a literal argument that contradicts a
+        parameter's inferred value domain is rejected (<code>E0212</code>). Nothing else is checked: no
+        return types, no record shapes, no checking of values passed between functions.</li>
+      <li><b>No user-defined types, no generics, no pattern matching.</b> Records are the aggregate.</li>
+      <li><b>No modules beyond files, no namespacing.</b> One file, one module, imported by relative path.</li>
+      <li><b>No async and no concurrency.</b> File and console I/O behind <code>!io</code>; anything else
+        reaches the host through a declared <code>extern</code>.</li>
+    </ul>
+
+    <h2 id="cheatsheet">20. Cheat sheet</h2>
+    <table class="cheat">
+      <thead><tr><th>Form</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td>fn f(a, b) { … }</td><td>Pure function</td></tr>
+        <tr><td>fn f(a) !io { … }</td><td>Function that may perform I/O</td></tr>
+        <tr><td>memo fn f(a) { … }</td><td>Persistently memoized (must be pure)</td></tr>
+        <tr><td>extern fn f(a) = "Math.max";</td><td>Foreign function as a graph node</td></tr>
+        <tr><td>import { a, b } from "./m.rg";</td><td>Import from another module</td></tr>
+        <tr><td>table t { "k" -&gt; handler, }</td><td>Dispatch table with a closed target set</td></tr>
+        <tr><td>let x = e;</td><td>Declare a local</td></tr>
+        <tr><td>x = e;</td><td>Assign to a local</td></tr>
+        <tr><td>while (c) { … }</td><td>Loop while the condition is nonzero</td></tr>
+        <tr><td>for (x in xs) { … }</td><td>Loop over a list or a string</td></tr>
+        <tr><td>return e;</td><td>Return a value</td></tr>
+        <tr><td>if (c) a else b</td><td>Conditional expression, <code>else</code> required</td></tr>
+        <tr><td>if (c) { … } else { … }</td><td>Conditional statement, <code>else</code> optional</td></tr>
+        <tr><td>fn(x) { … }</td><td>Closure; lifts to <code>&lt;enclosing&gt;$&lt;n&gt;</code></td></tr>
+        <tr><td>[1, 2, 3]</td><td>List literal</td></tr>
+        <tr><td>{ a: 1, b: 2 }</td><td>Record literal</td></tr>
+        <tr><td>xs[i] · s[i]</td><td>Index a list or string</td></tr>
+        <tr><td>r.field</td><td>Read a record field</td></tr>
+        <tr><td>&amp;f</td><td>Reference to a definition</td></tr>
+        <tr><td>dyn { f, g }(ref, args…)</td><td>Call a reference, targets declared</td></tr>
+        <tr><td>t[key](args…)</td><td>Dispatch through a table</td></tr>
+        <tr><td>@"hash"(args…)</td><td>Call a stored earlier version</td></tr>
+        <tr><td>len · push · str · int</td><td>Length, append, int→string, string→int</td></tr>
+        <tr><td>substr · chars · join</td><td>String slicing, explode, implode</td></tr>
+        <tr><td>fail(v) · try(e)</td><td>Raise a value, catch into <code>{ok, value|error}</code></td></tr>
+        <tr><td>print · input · read_file · write_file</td><td>I/O builtins, all require <code>!io</code></td></tr>
+      </tbody>
+    </table>
+
+    <div class="next" style="margin-top:2rem">
+      <a href="spec.html">
+        <div class="h">Specification →</div>
+        <div class="d">The full grammar, canonical encoding, and sidecar reconciliation rules.</div>
+      </a>
+      <a href="https://github.com/DavidRDudas/rigidlang/tree/main/examples">
+        <div class="h">Examples →</div>
+        <div class="d">Triage pipeline, a four-module site generator, Mandelbrot, JS interop.</div>
+      </a>
+    </div>
+  </main>
+</div>
+
+<footer>
+  <div class="wrap frow">
+    <div>rigid — <a href="https://dudas.ai">David Dudas</a></div>
+  </div>
+</footer>
+
+<script src="site.js?v=9"></script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+[
+  {
+    "id": "rename-miss",
+    "what": "Rename a definition, leave its callers behind",
+    "why": "The everyday case. Both toolchains should catch it.",
+    "expected_miss": null,
+    "tsc": {
+      "caught": true,
+      "diagnostic": "core.ts(13,20): error TS2304: Cannot find name 'formatIncident'."
+    },
+    "rigid": {
+      "caught": true,
+      "diagnostic": "error[E0201] core.rg:10:20: unresolved name 'format_incident'"
+    }
+  },
+  {
+    "id": "rename-reuse",
+    "what": "Rename a definition, then give a DIFFERENT function its old name",
+    "why": "Callers still compile, but now mean something else. This is the case rigid exists for.",
+    "expected_miss": null,
+    "tsc": {
+      "caught": false,
+      "diagnostic": ""
+    },
+    "rigid": {
+      "caught": true,
+      "diagnostic": "error[E0202] router.rg:1:10: 'notify_oncall' from \"core.rg\" no longer means what it meant: the pinned definition (sha256:079abb19fb05\u2026) is now named 'page_oncall', and 'notify_oncall' now names a different definition (sha256:935bcc07c541\u2026). Refusing to silently rebind. Run `rigid rebind router.rg#notify_oncall` to accept the new meaning, or rename the reference to 'page_oncall'."
+    }
+  },
+  {
+    "id": "arity-change",
+    "what": "Add a parameter to a function, miss one call site",
+    "why": "Arity is the one type-like check rigid has.",
+    "expected_miss": null,
+    "tsc": {
+      "caught": true,
+      "diagnostic": "core.ts(9,38): error TS2554: Expected 3 arguments, but got 2."
+    },
+    "rigid": {
+      "caught": true,
+      "diagnostic": "error[E0209] core.rg:6:42: 'severity' has arity 3, called with 2 argument(s)"
+    }
+  },
+  {
+    "id": "delete-referenced",
+    "what": "Delete a function the dispatch set still points at",
+    "why": "A reference to something that no longer exists.",
+    "expected_miss": null,
+    "tsc": {
+      "caught": true,
+      "diagnostic": "router.ts(1,33): error TS2305: Module '\"./core.js\"' has no exported member 'queueNormal'."
+    },
+    "rigid": {
+      "caught": true,
+      "diagnostic": "error[E0201] router.rg:1:25: unresolved import 'queue_normal' from \"core.rg\" \u2014 pinned definition (sha256:48639e7f3578\u2026) no longer exists there"
+    }
+  },
+  {
+    "id": "type-mismatch",
+    "what": "Pass a string where a number belongs",
+    "why": "rigid has no types beyond arity. TypeScript should win this one.",
+    "expected_miss": null,
+    "tsc": {
+      "caught": true,
+      "diagnostic": "router.ts(20,19): error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'."
+    },
+    "rigid": {
+      "caught": true,
+      "diagnostic": "error[E0212] router.rg:14:10: 'severity' uses parameter 'impact' as integer (arithmetic or ordering), but this call passes string"
+    }
+  },
+  {
+    "id": "type-via-local",
+    "what": "Bind a string to a local, then pass it where a number belongs",
+    "why": "One indirection past a literal.",
+    "expected_miss": null,
+    "tsc": {
+      "caught": true,
+      "diagnostic": "router.ts(21,19): error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'."
+    },
+    "rigid": {
+      "caught": true,
+      "diagnostic": "error[E0212] router.rg:15:10: 'severity' uses parameter 'impact' as integer (arithmetic or ordering), but this call passes string"
+    }
+  },
+  {
+    "id": "type-via-return",
+    "what": "Pass a function's string result where a number belongs",
+    "why": "Requires knowing what the callee returns.",
+    "expected_miss": null,
+    "tsc": {
+      "caught": true,
+      "diagnostic": "router.ts(20,19): error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'."
+    },
+    "rigid": {
+      "caught": true,
+      "diagnostic": "error[E0212] router.rg:14:10: 'severity' uses parameter 'impact' as integer (arithmetic or ordering), but this call passes string"
+    }
+  },
+  {
+    "id": "arith-on-string",
+    "what": "Multiply a string",
+    "why": "Wrong on its face, with no call involved.",
+    "expected_miss": null,
+    "tsc": {
+      "caught": true,
+      "diagnostic": "router.ts(20,10): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type."
+    },
+    "rigid": {
+      "caught": true,
+      "diagnostic": "error[E0212] router.rg: this operator needs integers, but one side is a string"
+    }
+  },
+  {
+    "id": "field-on-int",
+    "what": "Read a field off an integer",
+    "why": "Records have fields; integers do not.",
+    "expected_miss": null,
+    "tsc": {
+      "caught": true,
+      "diagnostic": "router.ts(21,12): error TS2339: Property 'kind' does not exist on type '5'."
+    },
+    "rigid": {
+      "caught": true,
+      "diagnostic": "error[E0212] router.rg:15:12: '.kind' needs a record, but this is an integer"
+    }
+  },
+  {
+    "id": "table-target-missing",
+    "what": "Point a dispatch key at a name that does not exist",
+    "why": "The first of three table scenarios: the target itself is checked.",
+    "expected_miss": null,
+    "tsc": {
+      "caught": true,
+      "diagnostic": "router.ts(9,21): error TS2552: Cannot find name 'notifyOncalll'. Did you mean 'notifyOncall'?"
+    },
+    "rigid": {
+      "caught": true,
+      "diagnostic": "error[E0201] router.rg:4:17: unresolved name 'notify_oncalll'"
+    }
+  },
+  {
+    "id": "handler-wrong-arity",
+    "what": "Give a dispatch target an extra parameter",
+    "why": "The target is only ever reached through the string-keyed set.",
+    "expected_miss": null,
+    "tsc": {
+      "caught": true,
+      "diagnostic": "router.ts(11,20): error TS2345: Argument of type '(inc: Incident, retries: number) => string' is not assignable to parameter of type 'Handler'."
+    },
+    "rigid": {
+      "caught": true,
+      "diagnostic": "error[E0209] router.rg:10:10: table entry \"breach\" -> 'escalate' has arity 2, but this dispatch passes 1 argument(s)"
+    }
+  },
+  {
+    "id": "swap-dispatch-targets",
+    "what": "Swap which handler two keys map to",
+    "why": "A real behaviour change that breaks no reference. Neither checker should flag it \u2014 included so the benchmark is not only cases somebody wins.",
+    "expected_miss": "No error exists to report: keys are data and bear no required relation to handler names, so a swapped pairing is a valid program. rigid's hash for the table does move, and the tests downstream of it re-execute. See BENCHMARK.md, 'What can and cannot be checked about a dispatch table'.",
+    "tsc": {
+      "caught": false,
+      "diagnostic": ""
+    },
+    "rigid": {
+      "caught": false,
+      "diagnostic": "warning[W0404] router.rg: quarantine drift: table:registry [database] now resolves to different content (sha256:48639\u2026 -> sha256:079ab\u2026)"
+    }
+  }
+]

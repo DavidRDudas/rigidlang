@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evidence — rigid</title>
+<meta name="description" content="Two measurements on code this project did not write: capability drift across 3,533 npm upgrades, and renames across 22,583 commits.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cg stroke='%232F4BD8' stroke-width='2.4' fill='none'%3E%3Cpath d='M8 24 L16 8 L24 24'/%3E%3C/g%3E%3Cg fill='%232F4BD8'%3E%3Ccircle cx='8' cy='24' r='3.4'/%3E%3Ccircle cx='16' cy='8' r='3.4'/%3E%3Ccircle cx='24' cy='24' r='3.4'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=9">
+<script>
+  try {
+    var t = localStorage.getItem("rigid-theme");
+    if (t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches)
+      document.documentElement.classList.add("dark");
+  } catch (e) {}
+</script>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap inner">
+    <a class="brand" href="index.html">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><g stroke="var(--accent)" stroke-width="2.4" fill="none"><path d="M8 24 L16 8 L24 24"/></g><g fill="var(--accent)"><circle cx="8" cy="24" r="3.4"/><circle cx="16" cy="8" r="3.4"/><circle cx="24" cy="24" r="3.4"/></g></svg>
+      <b>rigid</b><span class="ver">v1.8</span>
+    </a>
+    <select class="navpick" id="navpick" aria-label="Go to page">
+      <optgroup label="Language">
+        <option value="index.html">Home</option>
+        <option value="learn.html">Learn</option>
+        <option value="play.html">Playground</option>
+        <option value="spec.html">Specification</option>
+        <option value="tools.html">Tools</option>
+      </optgroup>
+      <optgroup label="Design">
+        <option value="paper.html">Paper</option>
+        <option value="quarantine.html">Quarantine</option>
+      </optgroup>
+      <optgroup label="Evidence">
+        <option value="evidence.html" selected>Evidence</option>
+        <option value="benchmark.html">Benchmark</option>
+        <option value="experiment.html">Experiment</option>
+        <option value="study.html">Study</option>
+        <option value="prereg.html">Pre-registration</option>
+      </optgroup>
+    </select>
+    <a class="lnk gh" href="https://github.com/DavidRDudas/rigidlang" aria-label="GitHub">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+    </a>
+    <button class="tbtn" id="theme" aria-label="Toggle dark mode">
+      <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+      <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+  </div>
+</nav>
+
+<div class="wrap doc">
+  <aside class="toc">
+    <div class="t">Evidence</div>
+    <ol>
+      <li><a href="#1-capability-drift-across-npm-releases">1. Capability drift across npm releases</a></li>
+      <li><a href="#2-renames-that-shipped-a-dangling-reference">2. Renames that shipped a dangling reference</a></li>
+      <li><a href="#why-these-two">Why these two</a></li>
+    </ol>
+  </aside>
+  <main class="doc-body">
+<h1>Evidence from other people's code</h1>
+<p>Every number in <code>BENCHMARK.md</code> comes from a corpus this project's author wrote. That is fine for showing a mechanism works and useless for showing it matters. These two studies measure real artifacts nobody here controls.</p>
+<p>Both are reproducible from a clean checkout, both record their inputs, and both state what they over- and under-count. Read the limits before the numbers.</p>
+<p>---</p>
+<h2 id="1-capability-drift-across-npm-releases">1. Capability drift across npm releases</h2>
+<p><strong>Question.</strong> rigid records an imported definition's capability set when it pins it and reports a widening as <code>W0405</code> — an error under <code>--frozen</code>. Is that a usable signal or is it noise? If packages gain capabilities constantly the check is worthless; if a patch release almost never starts touching the network, the one that does is worth stopping the build for.</p>
+<p><strong>Method.</strong> <code>evidence/capdrift.py</code>. The sample is the dependency closure of 27 seed packages (react, express, webpack, eslint, lodash, …), chosen before any result was seen and recorded in <code>evidence/capdrift-sample.json</code>. For each package the last 16 published versions are downloaded and scanned; the capability set of each version is compared against its predecessor and classified by the semver step between them.</p>
+<p>Only code <strong>reachable from the package's declared entry points</strong> is scanned — <code>main</code>, <code>module</code>, <code>browser</code>, and the <code>exports</code> map, followed transitively through relative imports. This matters: lodash 4.17.14 ships a <code>tag.js</code> that requires <code>child_process</code>, but nothing a consumer imports ever loads it. Counting it reported a capability that never runs. Install hooks are the exception and always count, because they run whether anything imports them or not.</p>
+<p><strong>Result</strong> — 299 packages, 3,832 versions, 3,533 consecutive upgrades:</p>
+<div class="tbl-wrap"><table class="cmp"><thead><tr><th>step</th><th>upgrades</th><th>widened</th><th>rate</th></tr></thead><tbody><tr><td>patch</td><td>2,056</td><td>11</td><td><strong>0.5%</strong></td></tr><tr><td>minor</td><td>942</td><td>15</td><td>1.6%</td></tr><tr><td>major</td><td>535</td><td>36</td><td>6.7%</td></tr></tbody></table></div>
+<p>42 of 299 packages widened at least once.</p>
+<p><strong>Reading.</strong> A patch release almost never starts reaching a new part of the host — about one upgrade in 190. That is the property the mechanism needs: <code>W0405</code> would stay quiet through the ordinary flow of dependency updates, so when it does fire it carries information. A check that fired on a fifth of patch upgrades would be turned off within a week.</p>
+<p>The capabilities gained on a patch, across the whole sample, were <code>env</code> ×6, <code>rand</code> ×4, <code>time</code> ×4, <code>fs</code> ×3, <code>net</code> ×1, <code>proc</code> ×1. Seventeen of those are ambient (<code>env</code>, <code>rand</code>, <code>time</code>); five are the ones that matter.</p>
+<p><strong>What this does not show.</strong> It does not show that <code>W0405</code> catches attacks — every documented npm compromise was unpublished from the registry, so the malicious artifacts cannot be fetched and measured. It shows the <em>base rate</em> against which such an event would stand out, which is the prerequisite claim and the one that was actually testable.</p>
+<p><strong>Limits.</strong> The scanner recovers capabilities by matching <code>require</code>/<code>import</code> of host modules and the global forms (<code>fetch</code>, <code>eval</code>, <code>process.env</code>, …). That over-counts — a string in a comment matches — and under-counts — a fully dynamic <code>require(x)</code> does not. rigid's own capability sets are exact because they are <em>declared</em> on <code>extern</code> and propagated along a graph the compiler built; this is a proxy for what those declarations would say. Minified bundles are skipped. A package whose entry points cannot be resolved falls back to scanning everything, which over-counts for that package.</p>
+<pre class="code"><code>python3 evidence/capdrift.py --packages 300 --versions 16
+python3 evidence/capdrift.py --report</code></pre>
+<p>---</p>
+<h2 id="2-renames-that-shipped-a-dangling-reference">2. Renames that shipped a dangling reference</h2>
+<p><strong>Question.</strong> rigid's founding claim is that a name-bound language lets a rename silently break a reference. How often does that actually happen in code people ship?</p>
+<p><strong>Method.</strong> <code>evidence/renamebreak.py</code>. Walk a repository's history commit by commit. At each commit, parse every changed <code>.py</code> file with Python's own <code>ast</code> and record its top-level <code>def</code>/<code>class</code> names. A name that disappears from a file while exactly one same-kind, same-arity name appears in the same file is treated as a rename. Then: immediately after that commit, does any <em>other</em> file in the tree still reference the old name in a call-shaped or import-shaped position?</p>
+<p>If it does, the rename shipped an incomplete edit — the state rigid refuses to produce, because the pinned identity is found under the new name and the reference is reported with a mechanical <code>rename_reference</code> fix.</p>
+<p>Ten Python projects, chosen before any result was seen and listed in <code>evidence/repos.txt</code>: requests, flask, click, black, httpx, attrs, fastapi, scrapy, more-itertools, pytest. None written by this author.</p>
+<p>A candidate only counts as a rename if the old name is gone from the <strong>whole tree</strong> at that commit, not merely from the file it left. Without that check, <code>batched</code> in more-itertools reads as renamed to <code>constrained_batches</code> while <code>batched</code> is still a public function, and every generic <code>test_it</code> in pytest reads as renamed to whatever else the commit added. Adding it cut the finding count from 37 to 8.</p>
+<p><strong>Result</strong> — 22,583 commits across ten repositories:</p>
+<div class="tbl-wrap"><table class="cmp"><thead><tr><th>repository</th><th>renames</th><th>dangling</th><th>rate</th></tr></thead><tbody><tr><td>requests</td><td>8</td><td>0</td><td>0.0%</td></tr><tr><td>flask</td><td>46</td><td>0</td><td>0.0%</td></tr><tr><td>click</td><td>53</td><td>0</td><td>0.0%</td></tr><tr><td>black</td><td>31</td><td>1</td><td>3.2%</td></tr><tr><td>httpx</td><td>74</td><td>4</td><td>5.4%</td></tr><tr><td>attrs</td><td>25</td><td>1</td><td>4.0%</td></tr><tr><td>fastapi</td><td>11</td><td>0</td><td>0.0%</td></tr><tr><td>scrapy</td><td>113</td><td>0</td><td>0.0%</td></tr><tr><td>more-itertools</td><td>34</td><td>1</td><td>2.9%</td></tr><tr><td>pytest</td><td>63</td><td>1</td><td>1.6%</td></tr><tr><td><strong>TOTAL</strong></td><td><strong>458</strong></td><td><strong>8</strong></td><td><strong>1.7%</strong></td></tr></tbody></table></div>
+<p>All eight, in full:</p>
+<pre class="code"><code>black          FileMode        -&gt; Mode             still in blackd.py, tests/test_black.py
+httpx          Client          -&gt; AsyncClient      still in httpx/__init__.py
+httpx          Event           -&gt; Lock             still in tests/conftest.py
+httpx          Event           -&gt; Lock             still in tests/conftest.py
+httpx          encode          -&gt; encode_request   still in httpx/_auth.py, httpx/_client.py
+attrs          attr            -&gt; attrib           still in conftest.py, tests/test_annotations.py
+more-itertools unique_from_each -&gt; unique_to_each  still in more_itertools/tests/test_more.py
+pytest         CallSpec2       -&gt; CallSpec         still in testing/deprecated_test.py</code></pre>
+<p><strong>Verified by hand.</strong> The black case: commit <code>06f2790b5ca3</code>, titled <em>"Rename FileMode into just Mode"</em>. <code>FileMode</code> is defined nowhere in the tree afterwards, <code>Mode</code> is the new class, and <code>blackd.py:109</code> still reads <code>mode = black.FileMode(</code>. That is precisely the state rigid refuses to produce — the pinned identity is found under the new name, and the reference is reported as <code>E0201</code> carrying a mechanical <code>rename_reference</code> fix.</p>
+<p><strong>Reading, without inflation.</strong> 1.7% is a <em>low</em> rate, and the population explains most of it: these are ten of the best-maintained projects in the Python ecosystem, with CI, high coverage, and careful review. The honest claim is not "renames break things constantly" — it is that renames leave dangling references even here, roughly once per sixty, and that every one of the eight is a case a content-addressed compiler turns into an error at the moment of the rename rather than a bug someone finds later.</p>
+<p>Whether the rate is higher in less-tested code is a reasonable guess and is <strong>not</strong> measured here.</p>
+<p><strong>A correction worth recording.</strong> The first version of this study reported <code>0 dangling</code> across 379 renames. That number was an artifact: the reference search used <code>git grep -E</code>, and git's ERE engine does not implement <code>\b</code> — it matched nothing, silently, on every query. A confident zero from a broken instrument is worse than no result, so the script now runs positive and negative controls against the first repository before measuring anything and refuses to continue if the detector finds nothing where a plain fixed-string search finds something.</p>
+<p><strong>Limits, which are substantial.</strong> Python is dynamic, so a surviving textual reference is not proof of a runtime break: it may be shadowed, guarded, in dead code, or a coincidental match. Matches are restricted to call- and import-shaped positions and short or dunder names are dropped, and it still over-counts. Renames are inferred from the shape of a diff rather than from intent, so a delete plus an unrelated add in one commit can look like one. Only the repository's own files are searched — a break in a <em>dependent</em> project is invisible here, and that is the larger population.</p>
+<p>The output is a rate of <strong>plausible</strong> dangling references, not of confirmed production incidents.</p>
+<pre class="code"><code>python3 evidence/renamebreak.py --repos evidence/repos.txt --commits 2500</code></pre>
+<p>---</p>
+<h2 id="why-these-two">Why these two</h2>
+<p>They test different halves of the thesis. The first asks whether a mechanism rigid has built is <em>usable</em> — a signal is only worth having if it is quiet. The second asks whether the problem rigid exists to solve is <em>real</em> outside the benchmark that was written to demonstrate it.</p>
+<p>Neither is a proof that anyone should adopt this language. They are the smallest honest step past "the author's own tests pass."</p>
+  </main>
+</div>
+
+<footer>
+  <div class="wrap frow">
+    <div>rigid — <a href="https://dudas.ai">David Dudas</a></div>
+  </div>
+</footer>
+
+<script src="site.js?v=9"></script>
+</body>
+</html>

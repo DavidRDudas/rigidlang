@@ -1,0 +1,21 @@
+{
+  "format": "rigid-bind/0",
+  "definitions": {
+    "escape": "sha256:27b7a481c0d2355d5cfcf1edf092b44722433194e581ff17be96b1f3fb69d552",
+    "link": "sha256:9ec6ff6c6a5e6391fc07754644aba3f0955c167d87f0541ee65401255f8b34ac",
+    "page": "sha256:6bd6f2f1a630220e36d21893d5531fa80a9654f7865fc86e60b15f534c6903e7",
+    "tag": "sha256:f150f7d9c8aff5adde94ec13b2e1b4d432a5a92921a3fbc89c864c73fdb3ca5d",
+    "test_escape": "sha256:f966552cadb03e72affc5bb23a7cbb418f6a32a3cba8c450283f39ff3a42418a",
+    "test_escape_clean": "sha256:45d729d3c7e09ebaeff984d6c8fea3bc4827afd4684877ca604c6031e8d0bd54",
+    "test_link": "sha256:60ba82fbbcefe0652ab444cf7fb0ce680282da102679ecc0b294d62ba205dd55",
+    "test_tag": "sha256:f4476bdcdd35eb9d30b967b458506478e1770ec144abcad426d52f0fa6f68e19"
+  },
+  "quarantine": {},
+  "module_hash": "sha256:384ff9419f2d0016344cc4d073f34352d6fcc701500ef8d8ed8c67f3e8013268",
+  "references": {
+    "split_lines": {
+      "target": "strings.rg#split_lines",
+      "hash": "sha256:4c3bf1bdb8f2ffe9b931ce6264e041773174d9e163ac0275339a2f201da309a9"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+// legacy.js.txt — the "before" shape (not executable here; the pattern
+// this case study migrates). Classic platform-script style: a mutable
+// registry keyed by strings, populated at load time, dispatched on data.
+// Every question below is unanswerable statically:
+//   - who can handle "task.updated"?           (registry is runtime state)
+//   - what breaks if renameAssignee changes?   (grep for a string)
+//   - which handlers do IO?                    (unknowable)
+
+var registry = {};
+function on(event, fn) { registry[event] = fn; }
+function emit(event, rec) { return registry[event](rec); }
+
+on("task.created", function (rec) { db.insert("task", rec); return audit(rec); });
+on("task.updated", function (rec) { return renameAssignee(rec) || notify(rec); });
+on("task.closed",  function (rec) { notify(rec); return archive(rec); });
+on("sla.breach",   function (rec) { return page(pickOncall(rec)); });
+
+// elsewhere, months later:
+emit(record.sys_class + "." + action, record);

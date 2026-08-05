@@ -8,7 +8,7 @@ authors:
     orcid: "https://orcid.org/0009-0000-9348-5438"
 repository-code: "https://github.com/DavidRDudas/rigidlang"
 license: MPL-2.0
-version: "1.8"
+version: "1.8.1"
 abstract: >-
   rigid derives an exact reference graph as a byproduct of compilation. A
   definition's identity is the SHA-256 of its canonical form, with bound names

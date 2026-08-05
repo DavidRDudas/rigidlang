@@ -15,7 +15,7 @@ macro_rules! sayln {
 }
 
 const USAGE: &str = "\
-rigid v1.8 — a text-first, content-addressed language
+rigid v1.8.1 — a text-first, content-addressed language
 
 USAGE:
   rigid check   [--root DIR] [--frozen] [--json] [--require KIND]

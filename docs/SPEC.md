@@ -1,4 +1,4 @@
-# rigid v1.8 — specification
+# rigid v1.8.1 — specification
 
 Working name only ("rigid designator," Kripke: a reference that picks out the
 same thing in every possible world — which is what a hash-pinned reference is).

@@ -1,4 +1,4 @@
-# rigid v1.8
+# rigid v1.8.1
 
 **A text-first, content-addressed language kernel.** Text is authoritative
 for content; the derived graph is authoritative for identity; ambiguity is a
@@ -264,7 +264,7 @@ rigid watch        # re-check and re-run only the affected tests on every save
     It separates the definitions nothing references at all, each a real
     decision, from everything that merely hangs beneath them.
 
-43. **Declared relationships, enforced exactly** (v1.8): `rigid.rules`
+43. **Declared relationships, enforced exactly** (v1.8.1): `rigid.rules`
     states what the graph may look like — `deny domain/** -> http/**`,
     `deny parse.rg#untrusted -> !fs, !net`, `require test handlers.rg#**`,
     `require attest reviewed api.rg#**`. Every large codebase has rules like
@@ -272,12 +272,12 @@ rigid watch        # re-check and re-run only the affected tests on every save
     graph. Here the graph *is* the compiler's resolution, so the answer is a
     proof and the error names the path: `total -> ship`. An agent that wires
     the domain layer to the transport layer fails `check` on the spot.
-44. **`rigid dup`** (v1.8): two definitions with the same canonical form
+44. **`rigid dup`** (v1.8.1): two definitions with the same canonical form
     have the same hash — not similar, *identical*. Catches the most common
     machine-authored regression, reimplementing something that already
     exists, and it composes: a review attested about one covers the other,
     because it is the same identity.
-45. **Properties** (v1.8): `property fn sort_preserves_length(xs: list)` is
+45. **Properties** (v1.8.1): `property fn sort_preserves_length(xs: list)` is
     a claim about every input, checked over 200 generated cases, with any
     failure shrunk to its simplest counterexample. Generation is seeded from
     the property's own hash, so results cache like tests and failures
@@ -379,7 +379,7 @@ http — opening it from disk blocks loading the module.
 
 ## Status
 
-v1.8: 48 verified demo steps (diff, capabilities, floats and merge are steps 37–40), and 33 differential cases proving the VM and the JavaScript target agree character-for-character.
+v1.8.1: 48 verified demo steps (diff, capabilities, floats and merge are steps 37–40), and 33 differential cases proving the VM and the JavaScript target agree character-for-character.
 Programs run outside rigid, and can now call the world they land in.
 **Engineering status: finished.** The completeness bar is reached, the design
 roadmap is closed, execution is compiled, the paper's metric is measurable,

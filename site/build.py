@@ -281,7 +281,7 @@ NAV_TEMPLATE = """<nav class="nav">
   <div class="wrap inner">
     <a class="brand" href="index.html">
       <svg viewBox="0 0 32 32" aria-hidden="true"><g stroke="var(--accent)" stroke-width="2.4" fill="none"><path d="M8 24 L16 8 L24 24"/></g><g fill="var(--accent)"><circle cx="8" cy="24" r="3.4"/><circle cx="16" cy="8" r="3.4"/><circle cx="24" cy="24" r="3.4"/></g></svg>
-      <b>rigid</b><span class="ver">v1.8</span>
+      <b>rigid</b><span class="ver">v1.8.1</span>
     </a>
     <select class="navpick" id="navpick" aria-label="Go to page">
 %(options)s

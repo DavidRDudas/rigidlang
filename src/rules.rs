@@ -278,9 +278,33 @@ pub fn check(rules: &[Rule], cx: &Ctx) -> Vec<Diagnostic> {
                 for d in select(ws, from) {
                     let mut cone = reach(ws, d);
                     cone.insert(d);
-                    for x in cone {
-                        let got = def_caps(ws, x) & want;
-                        if got != 0 {
+                    // Name where the capability comes from: a holder none of
+                    // whose own dependencies supplies it (an extern, or the
+                    // definition that prints). Chosen by id, never by hash-set
+                    // order, so the same program always gets the same report.
+                    let holders: Vec<DefId> = {
+                        let mut v: Vec<DefId> = cone
+                            .iter()
+                            .copied()
+                            .filter(|&x| def_caps(ws, x) & want != 0)
+                            .collect();
+                        v.sort();
+                        v
+                    };
+                    let origin = holders
+                        .iter()
+                        .copied()
+                        .find(|&x| {
+                            ws.edges[x]
+                                .iter()
+                                .all(|&y| y == x || def_caps(ws, y) & def_caps(ws, x) & want == 0)
+                        })
+                        .or_else(|| holders.first().copied());
+                    // everything denied that the cone reaches, not just what
+                    // the named origin supplies
+                    let got = holders.iter().fold(0, |a, &x| a | def_caps(ws, x)) & want;
+                    if let Some(x) = origin {
+                        {
                             out.push(
                                 Diagnostic::new(
                                     E0214_RULE,
@@ -306,7 +330,6 @@ pub fn check(rules: &[Rule], cx: &Ctx) -> Vec<Diagnostic> {
                                     "capabilities": crate::ast::caps_list(got),
                                 })),
                             );
-                            break;
                         }
                     }
                 }

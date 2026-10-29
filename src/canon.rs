@@ -75,24 +75,18 @@ const T_JOIN: u8 = 0x27;
 const T_READF: u8 = 0x28;
 const T_WRITEF: u8 = 0x29;
 
-/// The canonical bits of an f64.
+/// The canonical bits of an f64, used by the hash and the `memo` key.
 ///
-/// IEEE-754 has values that are equal but differently encoded (`-0.0` and
-/// `+0.0`) and a value unequal to itself (NaN). Content addressing cannot
-/// tolerate either: two things that compare equal must key identically, and
-/// a thing must key the same as itself. So `-0.0` normalizes to `+0.0` and
-/// every NaN to one quiet NaN; every other value keeps its own bits.
-///
-/// Source cannot spell either one — `-0.0` parses as a negation of `0.0`,
-/// and there is no NaN literal — so in the *hash* path this is a rule
-/// waiting for a case. It earns its place in the `memo` key path, where both
-/// values arise from ordinary arithmetic and a cache that missed on
-/// `0.0 * -1.0` would be silently wrong.
+/// A key may merge two values only if no program can tell them apart, or one
+/// key would stand for two behaviours. NaN qualifies: rigid has no way to
+/// observe a NaN's payload, so every NaN becomes one quiet NaN. `-0.0` and
+/// `+0.0` do not, even though they compare equal — `1.0 / x` is `-inf` for
+/// one and `+inf` for the other — so both keep their own bits. (Merging them
+/// once made a `memo` function answer `+inf` for `-0.0`.) A cache that
+/// misses is only slower; a cache that hits wrongly is wrong.
 pub fn canon_f64(v: f64) -> u64 {
     if v.is_nan() {
         0x7ff8_0000_0000_0000
-    } else if v == 0.0 {
-        0
     } else {
         v.to_bits()
     }
@@ -561,6 +555,24 @@ fn sha(bytes: &[u8]) -> Hash {
     let mut h: Hash = [0; 32];
     h.copy_from_slice(&out);
     h
+}
+
+/// Hash the workspace and record each definition's identity on it, where
+/// the evaluator and the JavaScript backend read it at runtime.
+pub fn hash_into(ws: &mut Workspace) -> HashMap<DefId, Hash> {
+    let hashes = hash_workspace(ws);
+    ws.ids = (0..ws.defs.len()).map(|d| hashes.get(&d).copied()).collect();
+    hashes
+}
+
+/// How a definition appears in anything a running program can observe: a
+/// short form of its hash, never its name. Renaming moves no hash, so it
+/// must not move a value or an error message either.
+pub fn tag(ws: &Workspace, d: DefId) -> String {
+    match ws.ids.get(d).copied().flatten() {
+        Some(h) => format!("#{}", &hex(&h)[7..19]),
+        None => "#unhashed".to_string(),
+    }
 }
 
 /// Hash every non-poisoned definition, SCC by SCC in dependency order.

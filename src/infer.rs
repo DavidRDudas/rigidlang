@@ -306,6 +306,23 @@ impl<'a> Fx<'a> {
         }
     }
 
+    /// Analyze a function body to its fixpoint. Joins only widen and every
+    /// set is drawn from the workspace's finite definitions, so this ends;
+    /// each pass is linear in the body. Diagnostics come from the last pass,
+    /// the one that saw the final may-reach sets.
+    fn run_body(&mut self, body: &[Stmt]) {
+        loop {
+            let before = (self.slots.clone(), self.ret.clone());
+            self.diags.clear();
+            for s in body {
+                self.stmt(s);
+            }
+            if (&self.slots, &self.ret) == (&before.0, &before.1) {
+                break;
+            }
+        }
+    }
+
     fn stmt(&mut self, s: &Stmt) {
         match s {
             Stmt::Let { name, value } | Stmt::Assign { name, value } => {
@@ -339,24 +356,20 @@ impl<'a> Fx<'a> {
                     self.stmt(b);
                 }
             }
-            Stmt::For { var, iter, body } => {
+            // One pass per loop: `run_body` repeats the whole function until
+            // nothing changes, which is what makes loop-carried references
+            // stabilize. Repeating each loop here instead would cost 2^depth
+            // for nested loops and still not be a fixpoint.
+            Stmt::For { iter, body, .. } => {
                 self.visit(iter);
-                let _ = var;
-                // Two passes, as with `while`: loop-carried references have
-                // to stabilize, and joins only ever widen.
-                for _ in 0..2 {
-                    for b in body {
-                        self.stmt(b);
-                    }
+                for b in body {
+                    self.stmt(b);
                 }
             }
             Stmt::While { cond, body } => {
                 self.visit(cond);
-                // two passes so loop-carried refs stabilize (joins only widen)
-                for _ in 0..2 {
-                    for b in body {
-                        self.stmt(b);
-                    }
+                for b in body {
+                    self.stmt(b);
                 }
             }
         }
@@ -375,13 +388,15 @@ pub fn analyze(ws: &Workspace) -> Vec<Diagnostic> {
         .filter(|&d| ws.defs[d].kind == DefKind::Fn)
         .collect();
 
-    // pass 1: one-level return summaries, fixpoint-lite (joins only widen;
-    // three rounds cover the mutual-recursion shapes small programs have)
+    // pass 1: return summaries, iterated to a fixpoint. Each round is
+    // monotone in the previous one and starts from the empty set, so the
+    // summaries only grow, and they are bounded by the workspace's
+    // definitions: the loop ends, and when it does no call chain is cut short.
     let mut summaries: HashMap<DefId, Reach> = fns
         .iter()
         .map(|&d| (d, Some(BTreeSet::new())))
         .collect();
-    for _ in 0..3 {
+    loop {
         let snapshot = summaries.clone();
         for &d in &fns {
             let info = &ws.defs[d];
@@ -394,10 +409,11 @@ pub fn analyze(ws: &Workspace) -> Vec<Diagnostic> {
                 ret: Some(Some(BTreeSet::new())),
                 diags: Vec::new(),
             };
-            for s in &f.body {
-                fx.stmt(s);
-            }
+            fx.run_body(&f.body);
             summaries.insert(d, fx.ret.take().unwrap());
+        }
+        if summaries == snapshot {
+            break;
         }
     }
 
@@ -414,9 +430,7 @@ pub fn analyze(ws: &Workspace) -> Vec<Diagnostic> {
             ret: None,
             diags: Vec::new(),
         };
-        for s in &f.body {
-            fx.stmt(s);
-        }
+        fx.run_body(&f.body);
         out.extend(fx.diags);
     }
     out

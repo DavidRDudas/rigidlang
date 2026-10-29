@@ -186,19 +186,22 @@ postfix   := atom ("." ident | "[" expr "]")*         -- field access, indexing<
       <tbody>
         <tr><td>+ - * / %</td><td>Arithmetic. Two integers stay integral and division truncates toward
           zero; a float on either side promotes the other. Integer division by zero is an error, float
-          division by zero an infinity.</td></tr>
+          division by zero an infinity. Integers are checked: a result outside 64 bits is the catchable
+          error <code>integer overflow</code>, never a wrapped number.</td></tr>
         <tr><td>+</td><td>Also concatenates two strings, or two lists.</td></tr>
         <tr><td>== != &lt; &gt; &lt;= &gt;=</td><td>Comparison. Yields the integer <code>1</code> or <code>0</code>.
-          Equality compares numerically across Int and Float, so <code>1 == 1.0</code>.</td></tr>
-        <tr><td>xs[i]</td><td>Index a list, a string (yielding a one-character string), or a record by key.</td></tr>
+          Comparison across Int and Float is exact, so <code>1 == 1.0</code> but
+          <code>9007199254740993 != 9007199254740992.0</code>.</td></tr>
+        <tr><td>xs[i]</td><td>Index a list, or a string (yielding a one-character string). Records are read
+          with <code>r.field</code>.</td></tr>
         <tr><td>r.field</td><td>Record field access.</td></tr>
       </tbody>
     </table>
     <p style="margin-top:1rem"><code>float(e)</code> widens an integer or parses a string; <code>int(e)</code>
-      truncates toward zero. Two integers are never widened silently — that would lose precision above
-      2<sup>53</sup>, which is the kind of quiet wrongness this language exists to refuse. Before hashing,
-      <code>-0.0</code> normalizes to <code>+0.0</code> and every NaN to one quiet NaN, because content
-      addressing cannot have two keys that compare equal or one that does not equal itself. The JS target
+      truncates toward zero, and refuses a float no 64-bit integer holds. Two integers are never widened
+      silently — that would lose precision above 2<sup>53</sup>, which is the kind of quiet wrongness this
+      language exists to refuse. Before hashing, every NaN becomes one quiet NaN, since no program can tell
+      NaNs apart; <code>-0.0</code> and <code>+0.0</code> stay distinct, since <code>1.0 / x</code> can. The JS target
       maps <code>Int</code> to <strong>BigInt</strong> and <code>Float</code> to a plain number, because
       JavaScript's single number type is a float64 — using it for both silently rounded 64-bit integers, so
       node answered <code>9007199254740993 + 1</code> with <code>9007199254740992</code>.</p>
@@ -509,7 +512,7 @@ postfix   := atom ("." ident | "[" expr "]")*         -- field access, indexing<
           <tr><td>E0210</td><td class="other">Assignment target is not a local; definitions are immutable.</td></tr>
           <tr><td>E0211</td><td class="other">A <code>memo</code> definition's dependency cone reaches <code>!io</code>; memoization requires purity.</td></tr>
           <tr><td>E0212</td><td class="other">A literal argument falls outside the parameter's inferred value domain.</td></tr>
-          <tr><td>E0213</td><td class="other">The selected compile target cannot represent this construct. Reserved; no target currently reports it.</td></tr>
+          <tr><td>E0213</td><td class="other">The selected compile target cannot represent this construct. The JS target reports two definitions whose mangled names would collide.</td></tr>
           <tr><td>E0214</td><td class="other">A rule in <code>rigid.rules</code> was violated — a forbidden reference, a missing test, or a missing attestation.</td></tr>
           <tr><td>W0405</td><td class="other">An imported definition gained a capability it did not have when pinned. Error under <code>--frozen</code>.</td></tr>
           <tr><td>E0301</td><td class="other">Retired in v1 (SCC hashing). The code stays reserved and is never reused.</td></tr>

@@ -44,7 +44,7 @@ pub fn check_workspace(
     std::collections::HashMap<resolve::DefId, canon::Hash>,
 ) {
     let mut diags = resolve::resolve(ws);
-    let hashes = canon::hash_workspace(ws);
+    let hashes = canon::hash_into(ws);
     diags.extend(infer::analyze(ws));
     diags.extend(domains::analyze(ws));
     diags.extend(graph::coverage_diags(ws));

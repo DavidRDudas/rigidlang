@@ -84,12 +84,16 @@ fn lcm(a, b) {
 }
 
 // Integer square root by Newton's method: exact, and no float required.
+// The first step is x / 2 + x % 2 rather than (x + 1) / 2, which overflows
+// at the largest integer. (It used to wrap there, and isqrt returned a
+// negative number; checked arithmetic is what caught it.) After that,
+// x + n / x <= 2x stays in range, because x never exceeds 2^62.
 fn isqrt(n) {
   if (n < 2) {
     return max(n, 0);
   }
   let x = n;
-  let y = (x + 1) / 2;
+  let y = x / 2 + x % 2;
   while (y < x) {
     x = y;
     y = (x + n / x) / 2;
@@ -124,6 +128,7 @@ fn test_gcd() { return gcd(12, 18) == 6; }
 fn test_lcm() { return lcm(4, 6) == 12; }
 fn test_isqrt() { return isqrt(17) == 4; }
 fn test_isqrt_exact() { return isqrt(144) == 12; }
+fn test_isqrt_max() { return isqrt(9223372036854775807) == 3037000499; }
 fn test_floor_div() { return floor_div(-7, 2) == -4; }
 fn test_round() { return round_to(3.14159, 2) == 3.14; }
 fn test_sign() { return sign(-3) == -1; }

@@ -100,7 +100,7 @@ fn pipeline(root: &PathBuf, json_mode: bool) -> Pipeline {
         eprintln!("  resolve    : {:?}", _t1.elapsed());
     }
     let _t2 = std::time::Instant::now();
-    let hashes = canon::hash_workspace(&ws);
+    let hashes = canon::hash_into(&mut ws);
     if std::env::var("RIGID_TIMING").is_ok() {
         eprintln!("  hash       : {:?}", _t2.elapsed());
     }
@@ -154,20 +154,6 @@ fn module_fingerprints(p: &Pipeline) -> std::collections::HashMap<String, String
     out
 }
 
-/// A command-line argument's value. `2` is an int, `2.0` a float, and
-/// anything else a string — the same reading the lexer gives a literal, so
-/// `rigid run f#area 2.0` and `area(2.0)` mean the same thing.
-fn cli_value(s: &str) -> eval::Value {
-    if let Ok(v) = s.parse::<i64>() {
-        return eval::Value::Int(v);
-    }
-    if s.contains('.') {
-        if let Ok(v) = s.parse::<f64>() {
-            return eval::Value::Float(v);
-        }
-    }
-    eval::Value::Str(s.to_string())
-}
 
 fn check_cache_path(root: &std::path::Path) -> std::path::PathBuf {
     root.join(".rigid-checkcache.json")
@@ -357,7 +343,26 @@ fn write_store(ws: &resolve::Workspace, hashes: &std::collections::HashMap<usize
     let _ = std::fs::write(dir.join("index.json"), serde_json::to_string_pretty(&index).unwrap());
 }
 
+/// Stack for the thread every command runs on. The parser bounds how deep a
+/// syntax tree can be (parser::MAX_NESTING) and the VM bounds how deep calls
+/// can go (eval::MAX_CALL_DEPTH); this is sized so both bounds are reached
+/// long before the stack is, in debug builds too. It is address space, not
+/// memory: pages are only committed when a program actually recurses.
+const STACK_BYTES: usize = 1 << 30;
+
 fn main() {
+    let worker = std::thread::Builder::new()
+        .name("rigid".into())
+        .stack_size(STACK_BYTES)
+        .spawn(cli_main)
+        .expect("could not start the main thread");
+    if worker.join().is_err() {
+        // the panic message has already been printed
+        std::process::exit(101);
+    }
+}
+
+fn cli_main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let json_mode = args.iter().any(|a| a == "--json");
     let frozen = args.iter().any(|a| a == "--frozen");
@@ -524,13 +529,13 @@ fn main() {
             };
             let vals: Vec<eval::Value> = pos[2..]
                 .iter()
-                .map(|s| cli_value(s))
+                .map(|s| eval::cli_value(s))
                 .collect();
             let eng = eval::Engine::new(&p.ws).with_memo(&p.hashes, &root);
             match eng.call(d, vals) {
                 Ok(v) => sayln!("{}", eval::show(&p.ws, &v)),
                 Err(e) => {
-                    eprintln!("runtime error: {}", eval::show(&p.ws, &e));
+                    eprintln!("runtime error: {}", eval::annotate(&p.ws, &eval::show(&p.ws, &e)));
                     exit(1);
                 }
             }
@@ -1414,13 +1419,13 @@ fn main() {
             let vals: Vec<eval::Value> = args[2..]
                 .iter()
                 .take_while(|s| !s.starts_with("--"))
-                .map(|s| cli_value(s))
+                .map(|s| eval::cli_value(s))
                 .collect();
             let eng = eval::Engine::new(&p.ws).with_memo(&p.hashes, &root);
             match eng.recall(&target, vals) {
                 Ok(v) => sayln!("{}", eval::show(&p.ws, &v)),
                 Err(e) => {
-                    eprintln!("runtime error: {}", eval::show(&p.ws, &e));
+                    eprintln!("runtime error: {}", eval::annotate(&p.ws, &eval::show(&p.ws, &e)));
                     exit(1);
                 }
             }
@@ -1576,6 +1581,11 @@ fn main() {
                 emit(&p.diags, json_mode);
                 exit(1);
             }
+            let unrepresentable = backend_js::check(&p.ws);
+            if !unrepresentable.is_empty() {
+                emit(&unrepresentable, json_mode);
+                exit(1);
+            }
             let code = backend_js::Js::emit(&p.ws);
             match args.iter().position(|a| a == "-o").and_then(|i| args.get(i + 1)) {
                 Some(path) => match std::fs::write(path, &code) {
@@ -1715,10 +1725,11 @@ fn main() {
                     emit(&errs, false);
                     continue;
                 }
+                canon::hash_into(&mut ws);
                 let eng = eval::Engine::new(&ws);
                 match eng.call(id, vec![]) {
                     Ok(v) => sayln!("{}", eval::show(&ws, &v)),
-                    Err(e) => sayln!("error: {}", eval::show(&ws, &e)),
+                    Err(e) => sayln!("error: {}", eval::annotate(&ws, &eval::show(&ws, &e))),
                 }
             }
         }

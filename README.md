@@ -59,7 +59,7 @@ rigid watch        # re-check and re-run only the affected tests on every save
 7. **The repair loop closes.** `rigid fix --apply` takes the typed fix from
    (3), edits exactly the broken occurrences, and iterates until `check` is
    green — diagnostic in, converged source out, no human translation.
-8. **Mutual recursion hashes.** SCCs hash as a unit ([docs/SPEC.md](docs/SPEC.md) §3.4).
+8. **Mutual recursion hashes.** SCCs hash as a unit ([docs/SPEC.md](docs/SPEC.md) §3.5).
 9. **Programs run.** `rigid run math.rg#fib 20` → 6765. Tree-walking
    evaluator; Int/Str; first-class functions rejected pending quarantine.
 10. **Content-addressed test caching.** `rigid test` caches by test hash;
@@ -191,11 +191,11 @@ rigid watch        # re-check and re-run only the affected tests on every save
     finding. `rigid caps` lists the whole surface, complete by
     construction rather than by search.
 34. **Floats** (v1.5): `3.14`, `float(n)`, mixed arithmetic that promotes,
-    numeric equality across `1 == 1.0`. Two integers are never widened
-    silently. Canonical form normalizes `-0.0` to `+0.0` and every NaN to
-    one quiet NaN, because content addressing cannot have two keys that
-    compare equal or one that does not equal itself — a rule that earns
-    its place in the `memo` key, where `0.0 * -1.0` really happens.
+    exact comparison across `1 == 1.0`. Two integers are never widened
+    silently. Canonical form merges every NaN into one quiet NaN, which no
+    program can tell apart, and keeps `-0.0` apart from `+0.0`, which
+    `1.0 / x` can — the rule that keeps a `memo` key from answering for
+    the wrong zero.
 35. **Merging renames** (v1.5): `rigid merge` pairs definitions across
     three revisions by identity first and name second, then resolves name
     and body *independently*. You renamed `clamp` to `clip`; they changed
@@ -334,6 +334,7 @@ src/lib.rs        the shared front-end pass list (CLI and wasm agree by construc
 src/fixes.rs      fix --apply / rebind
 src/fmt.rs        canonical rendering (comment-preserving)
 src/diag.rs       stable-coded, JSON-emitting diagnostics with typed fixes
+tests/soundness.rs the guarantees, checked over generated programs
 docs/SPEC.md           grammar, canonical form, sidecar semantics, roadmap
 docs/QUARANTINE.md     design doc: dyn, guarantees G1–G4, gradual reference exactness
 demo.sh           the walkthrough
@@ -376,6 +377,34 @@ rustup target add wasm32-unknown-unknown   # once
 That writes `site/rigid.wasm` (~712 KB, ~220 KB gzipped), which is committed
 so the static site works with no build step. The page must be served over
 http — opening it from disk blocks loading the module.
+
+## Guarantees, and how they are checked
+
+rigid's tools stand on three claims, and `tests/soundness.rs` checks all
+three on every CI run over thousands of generated programs:
+
+1. **Same hash, same behaviour.** Renaming every definition, parameter and
+   local, shuffling record fields and table entries, reordering definitions
+   and reformatting must leave every hash *and* every result unchanged —
+   because test caching, `memo`, `attest`, `dup` and
+   `diff --require-no-semantic-change` all assume it.
+   ([docs/SPEC.md](docs/SPEC.md) §3.4 lists the runtime rules that make it
+   true.)
+2. **One meaning per program.** The VM and the JavaScript backend produce
+   the same values and the same errors, messages included.
+3. **No crash.** Every input ends in a value or an error: integers are
+   checked, nesting and call depth are bounded, and nothing panics.
+
+Each bug that once broke one of these has its own regression test there:
+record fields that hashed in one order and ran in another; a `memo` cache
+that answered `+inf` for `-0.0`; integers that wrapped in the VM, grew without
+bound in JavaScript, and panicked on `min / -1`; names leaking into runtime
+values; recursion that aborted the process; `isqrt` returning a negative
+number at the largest integer.
+
+These are tests, not proofs: they can find a counterexample, not rule every
+one out. Machine-checked proofs of the core (a Lean model of evaluation and
+canonical form) are the next step.
 
 ## Status
 

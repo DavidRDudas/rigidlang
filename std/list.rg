@@ -185,8 +185,12 @@ property fn unique_is_idempotent(xs: list) {
   return unique(unique(xs)) == unique(xs);
 }
 
+// Integers are checked, so a sum can overflow in one order and not the
+// other ([max, 1, -1] reversed is fine). Whenever both succeed, they agree.
 property fn sum_ignores_order(xs: list) {
-  return sum(xs) == sum(reverse(xs));
+  let a = try(sum(xs));
+  let b = try(sum(reverse(xs)));
+  return if (a.ok == 0) 1 else if (b.ok == 0) 1 else a.value == b.value;
 }
 
 property fn take_and_drop_rejoin(xs: list) {

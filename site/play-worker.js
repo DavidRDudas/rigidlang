@@ -46,13 +46,23 @@ onmessage = async (event) => {
     const result = callWasm(request);
     postMessage({ type: "result", id, result, ms: Date.now() - started });
   } catch (e) {
+    // A trap stops the module's Rust code wherever it was, so the instance
+    // is never reused. The usual trap is the browser's own stack running out
+    // (around 2,000 nested rigid calls) before rigid's limit of 10,000, which
+    // the CLI and the JavaScript target on node both reach. Say exactly that:
+    // the program would not have failed here elsewhere, and cannot catch it.
+    const overflow = e instanceof RangeError;
+    wasmExports = null;
+    try { await boot(); } catch (_) { /* the next message reports it */ }
     postMessage({
       type: "result",
       id,
       result: {
         ok: false,
         output: "",
-        result: "playground error: " + (e && e.message ? e.message : String(e)),
+        result: overflow
+          ? "runtime error: call depth limit exceeded — this browser's stack ran out before rigid's limit of 10000 nested calls (the CLI reaches it; `try` cannot catch a host limit)"
+          : "playground error: " + (e && e.message ? e.message : String(e)),
         diagnostics: [],
       },
       ms: Date.now() - started,

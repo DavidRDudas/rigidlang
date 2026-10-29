@@ -79,6 +79,11 @@ pub struct Workspace {
     /// strongly-connected components of the reference graph, in dependency
     /// order (every component's non-member deps appear in earlier components)
     pub sccs: Vec<Vec<DefId>>,
+    /// def -> content hash, recorded by `canon::hash_into`. At runtime a
+    /// definition *is* its hash: function values compare and display by it,
+    /// so nothing a program can observe depends on a name. Empty until the
+    /// workspace is hashed; None for poisoned definitions.
+    pub ids: Vec<Option<crate::canon::Hash>>,
 }
 
 fn norm_join(base_dir: &str, rel: &str) -> String {
@@ -337,6 +342,7 @@ pub fn build_workspace(root: &Path, modules: Vec<Module>) -> Result<Workspace, V
         dyn_sites: Vec::new(),
         table_entries: HashMap::new(),
         sccs: Vec::new(),
+        ids: Vec::new(),
     })
 }
 

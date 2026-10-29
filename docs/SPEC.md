@@ -140,7 +140,27 @@ Every name occurrence is resolved to exactly one `Binding`:
   implementation and its whole dependency cone (the Unison property).
 - Whitespace and comments never matter (they don't survive parsing).
 
-### 3.4 Cycles (v1: SCC hashing)
+### 3.4 What identity means at runtime
+
+§3.3 says what a hash ignores. The other half of the contract is that a
+running program can observe none of it, because test caching, `memo`,
+attestations, `dup` and `diff --require-no-semantic-change` all assume that
+two definitions with one hash behave identically. So every normalization the
+canonical form performs has a matching rule in the evaluator:
+
+| canonical form erases | so at runtime |
+|---|---|
+| record field order (fields are hashed name-sorted) | fields **evaluate** in name-sorted order, so a `fail` or `print` in two fields happens in one order whatever the source order; a field given twice is a parse error (E0101) |
+| names of definitions | a function value **is** its hash: `&f == &g` when f and g hash alike, dyn membership compares hashes, and a function shows as `&#6ef3a5556d27` (the first 12 hex digits). Runtime messages name definitions the same way; the CLIs append a `[#… = module#name]` legend the program never sees |
+| names of locals | a lambda's captures are ordered by first use in canonical order, not by name, so renaming captured locals moves no hash |
+| `-0.0` vs `+0.0` | nothing — they are **not** merged, because `1.0 / x` tells them apart (§Floats) |
+
+`tests/soundness.rs` checks this contract over generated programs: renaming
+every definition, parameter and local, shuffling record fields and table
+entries, reordering definitions and reformatting must leave every hash and
+every result unchanged.
+
+### 3.5 Cycles (v1: SCC hashing)
 
 Direct self-recursion in a singleton component uses `SelfRef`. Mutual
 recursion is legal: the reference graph is condensed into strongly-connected
@@ -243,7 +263,7 @@ consumers are first-class readers of compiler output.
 | E0210 | assignment target is not a local (definitions are immutable) |
 | E0211 | `memo` fn's dependency cone reaches `!io`; memoization requires purity |
 | E0212 | literal argument outside a parameter's inferred value domain |
-| E0213 | the selected compile target cannot represent this construct (reserved; no target currently reports it) |
+| E0213 | the selected compile target cannot represent this construct (JS: two definitions whose mangled names would collide) |
 | E0214 | a relationship declared in `rigid.rules` is violated |
 | W0405 | an imported definition gained a capability it did not have when pinned (error under `--frozen`) |
 | W0403 | a funref may reach a dyn site outside its declared set (fix: add_dyn_targets) |
@@ -373,6 +393,10 @@ normally where a reference graph stops being exact:
   * the quarantine still applies: a closure is invoked through `dyn`, and a
     target outside the declared set is refused by hash at runtime.
 
+Captures are ordered by their first use in the lambda body, walked in
+canonical order (record fields by name), never by name: renaming two captured
+locals must not reorder the lifted definition's parameters.
+
 `$` cannot start an identifier but is legal inside one, so a synthetic name
 is expressible in a `dyn` set — which it has to be — and can never collide
 with a name an author wrote. `fmt` skips synthetic definitions: the `fn(...)
@@ -433,6 +457,22 @@ reaching the network is a build failure, not an audit finding.
 complete by construction rather than by search, because effects travel the
 same exact graph everything else does.
 
+## Limits
+
+Two bounds keep every input inside what the implementation can do, so no
+program can crash the compiler or the VM:
+
+* **Nesting.** A tree deeper than `parser::MAX_NESTING` (1000) levels —
+  brackets, blocks, unary minus, and each operator of a chain all count — is
+  refused as E0101. A flat `1 + 1 + …` of a million terms is as deep as a
+  million nested parentheses.
+* **Calls.** More than `eval::MAX_CALL_DEPTH` (10,000) calls in progress is
+  the catchable error `call depth limit exceeded (10000 nested calls)`. The
+  CLI runs on a thread sized for it and the JS target's CLI runs in a worker
+  with a stack for it, so both engines fail at the same depth with the same
+  message. In the browser playground the browser's own stack runs out first
+  (about 2,000 calls); that is reported, but `try` cannot catch a host limit.
+
 ## Floats
 
 `3.14` is a float; `3` is an integer. A digit sequence continues into a
@@ -442,23 +482,37 @@ is catchable); `int(e)` truncates toward zero.
 
 Arithmetic on two integers stays integral — widening it would lose
 precision above 2^53, which is exactly the quiet wrongness this language
-refuses. A float on either side promotes the other. Equality compares
+refuses. For the same reason it is **checked**: a result outside 64 bits
+(`max + 1`, `min / -1`, `-min`) is the catchable error `integer overflow`,
+never a wrapped number. `min % -1` is 0, which fits. A float on either side promotes the other. Equality compares
 numerically across the two (`1 == 1.0`), and integer division by zero is
 still an error while float division by zero is an infinity, as IEEE-754
 says.
 
-**Canonical form.** IEEE-754 has two encodings that compare equal (`-0.0`
-and `+0.0`) and a value that does not equal itself (NaN). Content addressing
-tolerates neither, so before hashing, `-0.0` normalizes to `+0.0` and every
-NaN to one quiet NaN. Source cannot spell either — `-0.0` parses as a
-negation and there is no NaN literal — so in the hash this is a rule waiting
-for a case; it earns its place in the `memo` key, where both values arise
-from ordinary arithmetic and a cache that missed on `0.0 * -1.0` would be
-silently wrong.
+**Canonical form.** A key may merge two values only if no program can tell
+them apart. Every NaN becomes one quiet NaN, since rigid cannot observe a
+NaN's payload. `-0.0` and `+0.0` are **not** merged, although they compare
+equal: `1.0 / x` is `-inf` for one and `+inf` for the other. (An earlier
+version merged them, and a `memo` function answered `+inf` for `-0.0`.)
+Source cannot spell either value, so this matters for the `memo` key, where
+both arise from ordinary arithmetic.
+
+**Comparison across the two domains is exact.** `9007199254740993 ==
+9007199254740992.0` is false and `>` is true: the integer is not rounded to
+a float first, so equality stays transitive. NaN is unordered: every
+comparison with it is false except `!=`.
+
+**Conversions refuse what they cannot represent.** `int(e)` of a float that
+no i64 holds (including NaN and the infinities) is a catchable error, not a
+saturated number. `float(s)` and `int(s)` accept one grammar on every
+engine: after trimming Unicode whitespace, `int` takes `[+-]?[0-9]+` within
+64 bits, and `float` takes an optional sign followed by `inf`, `infinity` or
+`nan` (any case) or decimal digits with an optional point and exponent — no
+hex, no empty string.
 
 `rigid fmt` renders a float in the shortest form that round-trips, always
-with a decimal point, so `2.0` never renders as `2` and reads back as an
-integer.
+with a decimal point and never with an exponent, so `2.0` never renders as
+`2` and reads back as an integer. Both engines display floats this way.
 
 **The JS target keeps both domains.** JavaScript has one number type, a
 float64, which is why the backend maps a rigid `Int` to **BigInt** and a
@@ -621,7 +675,10 @@ unchanged; `--frozen` never uses it).
 
 `RIGID_CACHE_DIR` relocates the test and memo caches, so CI and a working
 copy can share one. A result computed anywhere is valid everywhere, because
-the key covers the whole dependency cone. `RIGID_TIMING=1` reports where
+the key covers the whole dependency cone — and `eval::SEMANTICS`, a version
+of what the evaluator does. A hash pins what code says; it cannot pin what a
+different release of rigid does with it, so a release that changes
+observable behaviour bumps the version and old cached answers stop matching. `RIGID_TIMING=1` reports where
 `check` spends its time.
 
 ## 7. Remaining, in priority order
@@ -650,7 +707,8 @@ store is immutable: a hash is never rewritten, only added. `rigid recall
 ## memo (v1.4)
 
 `memo fn f(a, b) { ... }` — results cached under (definition hash, canonical
-argument encoding). Sound by construction: purity is required (E0211 if the
+argument encoding, `eval::SEMANTICS`). The argument encoding keeps Int and
+Float apart and keeps the sign of zero (§Floats). Sound by construction: purity is required (E0211 if the
 dependency cone reaches any effect) and the hash covers the entire cone, so
 any change that could alter the result changes the key. Staleness is
 impossible rather than detected. The cache persists across processes and

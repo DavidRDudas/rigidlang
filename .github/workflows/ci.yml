@@ -1,0 +1,47 @@
+name: CI
+
+# Every push and pull request is held to the guarantees rigid makes:
+#   - same hash, same behaviour (renaming / reordering / reformatting a
+#     program moves no hash and no result)
+#   - one meaning per program (the VM and the JavaScript backend agree)
+#   - no crash (every input ends in a value or an error)
+# tests/soundness.rs checks all three over generated programs and holds a
+# regression test for every bug that once broke one of them.
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build
+        run: cargo build --release
+
+      - name: Soundness tests
+        run: cargo test --release
+
+      - name: Wider generated-program sweep
+        run: |
+          for seed in 1 2 3 4 5 6 7 8; do
+            RIGID_FUZZ_SEED=$seed RIGID_FUZZ_CASES=1000 \
+              cargo test --release --test soundness generated -- --nocapture
+          done
+
+      - name: VM and JavaScript agree on the curated cases
+        run: RB=./target/release/rigid ./tools/difftest.sh
+
+      - name: The demo walkthrough runs end to end
+        run: ./demo.sh > /dev/null
+
+      - name: The playground module builds
+        run: |
+          rustup target add wasm32-unknown-unknown
+          cargo build --release --target wasm32-unknown-unknown --lib

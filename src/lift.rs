@@ -124,7 +124,10 @@ fn lift_expr(
             collect_lets(body, &mut b);
             b
         };
-        let mut free: BTreeSet<String> = BTreeSet::new();
+        // Captures in order of first use, not by name: they become the
+        // lifted definition's leading parameters, so a name order would let
+        // renaming two captured locals reorder them and move the hash.
+        let mut free: Vec<String> = Vec::new();
         for s in body.iter() {
             free_stmt(s, &own, &mut free);
         }
@@ -179,7 +182,7 @@ fn lift_expr(
 }
 
 /// Names a body reads that it does not itself bind.
-fn free_stmt(s: &Stmt, own: &BTreeSet<String>, out: &mut BTreeSet<String>) {
+fn free_stmt(s: &Stmt, own: &BTreeSet<String>, out: &mut Vec<String>) {
     match s {
         Stmt::Let { value, .. } | Stmt::Assign { value, .. } => free_expr(value, own, out),
         Stmt::Return(e) | Stmt::Expr(e) => free_expr(e, own, out),
@@ -204,20 +207,35 @@ fn free_stmt(s: &Stmt, own: &BTreeSet<String>, out: &mut BTreeSet<String>) {
     }
 }
 
-fn free_expr(e: &Expr, own: &BTreeSet<String>, out: &mut BTreeSet<String>) {
-    match e {
-        Expr::Var(id) => {
-            if !own.contains(&id.name) {
-                out.insert(id.name.clone());
-            }
+fn free_expr(e: &Expr, own: &BTreeSet<String>, out: &mut Vec<String>) {
+    let note = |name: &String, out: &mut Vec<String>| {
+        if !own.contains(name) && !out.contains(name) {
+            out.push(name.clone());
         }
+    };
+    match e {
+        Expr::Var(id) => note(&id.name, out),
         // An already-lifted inner lambda carries its captures explicitly;
         // they are the names it needs from out here.
         Expr::Lambda { captures, .. } => {
             for c in captures {
-                if !own.contains(&c.name) {
-                    out.insert(c.name.clone());
-                }
+                note(&c.name, out);
+            }
+        }
+        // `xs[i]` on a local parses as a dispatch whose base is a bare
+        // name; it is a use of that local like any other.
+        Expr::TableDispatch { table, .. } => {
+            note(&table.name, out);
+            walk(e, &mut |c| free_expr(c, own, out));
+        }
+        // Fields in canonical (name) order, the order they are hashed and
+        // evaluated in: their order in the source is not part of identity,
+        // so it must not decide which capture comes first.
+        Expr::RecordLit(fs) => {
+            let mut order: Vec<&(Ident, Expr)> = fs.iter().collect();
+            order.sort_by(|a, b| a.0.name.cmp(&b.0.name));
+            for (_, v) in order {
+                free_expr(v, own, out);
             }
         }
         _ => walk(e, &mut |c| free_expr(c, own, out)),

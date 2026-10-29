@@ -1,0 +1,5 @@
+# The playground's wasm module gets an explicit 32 MiB stack (the default is
+# 1 MiB). eval::MAX_CALL_DEPTH and parser::MAX_NESTING are sized for it, so a
+# deep program in the browser ends in rigid's own error rather than a trap.
+[target.wasm32-unknown-unknown]
+rustflags = ["-C", "link-arg=-zstack-size=33554432"]

@@ -158,7 +158,8 @@ float(7) / 2     // 3.5   — or convert on purpose
 if (1) "yes" else "no"   // "yes"
 if (0) "yes" else "no"   // "no"</code></pre>
     <p>Arithmetic is <code>+ - * / %</code>, on integers and on floats. Integer division truncates; float
-      division does not. <code>+</code> is also concatenation for strings and for lists:</p>
+      division does not. Integers are checked: a result that does not fit in 64 bits is an
+      <code>integer overflow</code> error you can <code>try</code>, never a wrapped number. <code>+</code> is also concatenation for strings and for lists:</p>
 <pre class="code"><code class="rg">7 / 2              // 3
 7 % 2              // 1
 "foo" + "bar"      // "foobar"
@@ -564,8 +565,11 @@ fn route(event, payload) {
     <p>The key is still ordinary runtime data. What is fixed is the set of things it can select. A key outside
       the set fails at the boundary and lists what was available:</p>
 <pre class="term"><code><span class="pr">$</span> rigid run "route.rg#route" deleted 5
-<span class="er">runtime error: "no entry \"deleted\" in table 'handlers'
-  (keys: created, resolved)"</span></code></pre>
+<span class="er">runtime error: "no entry \"deleted\" in table #d010715b9f7c
+  (keys: created, resolved)"  [#d010715b9f7c = route.rg#handlers]</span></code></pre>
+    <p>Inside the error, the table is named by its hash, because that is what it <em>is</em>: renaming
+      <code>handlers</code> moves no hash, so it cannot change what a program sees either. The CLI adds the
+      names in brackets for you; the program never sees them.</p>
     <p>The payoff is that a handler reached only through a string key is still connected in the graph, so
       "who calls this?" has an exact answer in two hops:</p>
 <pre class="term"><code><span class="pr">$</span> rigid rdeps "route.rg#on_created"

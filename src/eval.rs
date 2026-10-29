@@ -75,16 +75,17 @@ pub fn show(ws: &Workspace, v: &Value) -> String {
     match v {
         Value::Int(x) => format!("{}", x),
         Value::Float(x) => crate::fmt::fmt_f64(*x),
-        Value::Str(s) => format!("{:?}", s),
-        Value::Fun(d) => format!("&{}#{}", ws.defs[*d].module_path, ws.defs[*d].name),
+        Value::Str(s) => quote(s),
+        // A function value shows as its identity, not its name: a rename
+        // moves no hash, so it must not change what a program prints.
+        Value::Fun(d) => format!("&{}", crate::canon::tag(ws, *d)),
         Value::Closure(d, caught) => {
             if caught.is_empty() {
-                format!("&{}#{}", ws.defs[*d].module_path, ws.defs[*d].name)
+                format!("&{}", crate::canon::tag(ws, *d))
             } else {
                 format!(
-                    "&{}#{}[{}]",
-                    ws.defs[*d].module_path,
-                    ws.defs[*d].name,
+                    "&{}[{}]",
+                    crate::canon::tag(ws, *d),
                     caught.iter().map(|v| show(ws, v)).collect::<Vec<_>>().join(", ")
                 )
             }
@@ -162,6 +163,8 @@ struct Chunk {
 
 struct C<'a> {
     ws: &'a Workspace,
+    /// def -> the first definition sharing its hash (see Engine::rep)
+    rep: &'a [DefId],
     def: DefId,
     ops: Vec<Op>,
     subs: Vec<Chunk>,
@@ -259,7 +262,7 @@ impl<'a> C<'a> {
             }
             Expr::FunRef(id) => {
                 let d = self.defid(id.span, &id.name);
-                self.ops.push(Op::Const(Value::Fun(d)));
+                self.ops.push(Op::Const(Value::Fun(self.rep.get(d).copied().unwrap_or(d))));
             }
             Expr::Lambda {
                 lifted, captures, ..
@@ -272,6 +275,7 @@ impl<'a> C<'a> {
                     Some(id) => self.defid(id.span, &id.name),
                     None => usize::MAX,
                 };
+                let d = self.rep.get(d).copied().unwrap_or(d);
                 self.ops.push(Op::MakeClosure(d, captures.len() as u32));
             }
             Expr::Call { callee, args } => {
@@ -293,6 +297,7 @@ impl<'a> C<'a> {
                 let set: Vec<DefId> = targets
                     .iter()
                     .map(|t| self.defid(t.span, &t.name))
+                    .map(|d| self.rep.get(d).copied().unwrap_or(d))
                     .collect();
                 self.ops.push(Op::DynCall(set, args.len() as u8));
             }
@@ -353,11 +358,18 @@ impl<'a> C<'a> {
                 self.ops.push(Op::MakeList(xs.len() as u32));
             }
             Expr::RecordLit(fs) => {
-                for (_, v) in fs {
+                // Fields evaluate in canonical (name-sorted) order, not
+                // source order. Canonical form sorts them, so two literals
+                // that differ only in field order share a hash; if they also
+                // evaluated in different orders, a `fail` or `print` in two
+                // fields would make one hash mean two behaviours.
+                let mut order: Vec<&(Ident, Expr)> = fs.iter().collect();
+                order.sort_by(|a, b| a.0.name.cmp(&b.0.name));
+                for (_, v) in &order {
                     self.expr(v);
                 }
                 self.ops.push(Op::MakeRecord(
-                    fs.iter().map(|(n, _)| n.name.clone()).collect(),
+                    order.iter().map(|(n, _)| n.name.clone()).collect(),
                 ));
             }
             Expr::Get { base, field } => {
@@ -421,6 +433,7 @@ impl<'a> C<'a> {
             Expr::Try(x) => {
                 let mut sub = C {
                     ws: self.ws,
+                    rep: self.rep,
                     def: self.def,
                     ops: Vec::new(),
                     subs: Vec::new(),
@@ -439,21 +452,77 @@ impl<'a> C<'a> {
 
 // ---------------------------------------------------------------- engine
 
+/// The version of what the evaluator does. Cached results (`test`, `memo`)
+/// are keyed by it as well as by content hash: the hash pins what the code
+/// says, this pins what running it means, so a release that changes
+/// behaviour cannot serve answers computed under the old rules. Bump it with
+/// any change a program could observe.
+///
+/// 2: checked integer arithmetic, record fields evaluated in canonical
+///    order, functions shown by hash, -0.0 kept distinct in memo keys.
+pub const SEMANTICS: &str = "rigid-semantics/2";
+
+/// How many calls may be in progress at once. Past it, the call fails with
+/// an ordinary, catchable error instead of exhausting the host's stack — and
+/// the JavaScript target enforces the same number, so the two engines fail at
+/// the same depth with the same message.
+///
+/// Ten thousand is what every host can actually provide: the CLI runs on a
+/// thread sized for it, the playground's wasm module is linked with a stack
+/// for it, and JavaScript engines reach it — or, on a small host stack, fail
+/// earlier with this same error.
+pub const MAX_CALL_DEPTH: u32 = 10_000;
+
 pub struct Engine<'a> {
+    /// calls currently in progress (see MAX_CALL_DEPTH)
+    depth: std::cell::Cell<u32>,
     memo_hash: Option<std::collections::HashMap<DefId, String>>,
     memo_path: Option<std::path::PathBuf>,
     memo_store: std::cell::RefCell<std::collections::HashMap<String, serde_json::Value>>,
     pub ws: &'a Workspace,
     chunks: Vec<Option<Chunk>>,
     arities: Vec<usize>,
+    /// def -> the first definition with the same hash. Function values are
+    /// built from this, so `&f == &g` and dyn membership compare identities
+    /// rather than names when f and g are the same code.
+    rep: Vec<DefId>,
 }
 
 fn errs(s: String) -> Value {
     Value::Str(s)
 }
 
+/// A file error by kind, not in the operating system's own words: those
+/// differ between platforms, and a program can read them through `try`.
+#[cfg(not(target_arch = "wasm32"))]
+fn io_kind(e: &std::io::Error, verb: &str) -> String {
+    match e.kind() {
+        std::io::ErrorKind::NotFound => "no such file".to_string(),
+        std::io::ErrorKind::PermissionDenied => "permission denied".to_string(),
+        _ => format!("cannot {}", verb),
+    }
+}
+
+/// The message for a call past MAX_CALL_DEPTH; the JS prelude spells it the
+/// same way.
+pub fn depth_error() -> String {
+    format!("call depth limit exceeded ({} nested calls)", MAX_CALL_DEPTH)
+}
+
 impl<'a> Engine<'a> {
     pub fn new(ws: &'a Workspace) -> Engine<'a> {
+        assert_eq!(
+            ws.ids.len(),
+            ws.defs.len(),
+            "Engine::new needs a hashed workspace (canon::hash_into)"
+        );
+        let mut first: HashMap<Hash, DefId> = HashMap::new();
+        let rep: Vec<DefId> = (0..ws.defs.len())
+            .map(|d| match ws.ids[d] {
+                Some(h) => *first.entry(h).or_insert(d),
+                None => d,
+            })
+            .collect();
         let mut chunks: Vec<Option<Chunk>> = vec![None; ws.defs.len()];
         let mut arities = vec![0usize; ws.defs.len()];
         for d in 0..ws.defs.len() {
@@ -465,6 +534,7 @@ impl<'a> Engine<'a> {
             arities[d] = f.params.len();
             let mut c = C {
                 ws,
+                rep: &rep,
                 def: d,
                 ops: Vec::new(),
                 subs: Vec::new(),
@@ -478,11 +548,24 @@ impl<'a> Engine<'a> {
             });
         }
         Engine {
+            depth: std::cell::Cell::new(0),
             memo_hash: None,
             memo_path: None,
             memo_store: std::cell::RefCell::new(std::collections::HashMap::new()),
-            ws, chunks, arities,
+            ws, chunks, arities, rep,
         }
+    }
+
+    /// Run one call's body, counted against MAX_CALL_DEPTH.
+    fn enter(&self, chunk: &Chunk, env: &mut Vec<Value>) -> Result<Option<Value>, Value> {
+        let d = self.depth.get();
+        if d >= MAX_CALL_DEPTH {
+            return Err(errs(depth_error()));
+        }
+        self.depth.set(d + 1);
+        let out = self.run(chunk, env);
+        self.depth.set(d);
+        out
     }
 
     /// Fast path used by compiled call ops: the target is known to be a
@@ -492,24 +575,19 @@ impl<'a> Engine<'a> {
             Some(chunk) => {
                 let want = self.arities[def];
                 if args.len() != want {
-                    let info = &self.ws.defs[def];
                     return Err(errs(format!(
-                        "{}#{} expects {} argument(s), got {}",
-                        info.module_path,
-                        info.name,
+                        "{} expects {} argument(s), got {}",
+                        crate::canon::tag(self.ws, def),
                         want,
                         args.len()
                     )));
                 }
-                match self.run(chunk, &mut args)? {
+                match self.enter(chunk, &mut args)? {
                     Some(v) => Ok(v),
-                    None => {
-                        let info = &self.ws.defs[def];
-                        Err(errs(format!(
-                            "{}#{} finished without `return`",
-                            info.module_path, info.name
-                        )))
-                    }
+                    None => Err(errs(format!(
+                        "{} finished without `return`",
+                        crate::canon::tag(self.ws, def)
+                    ))),
                 }
             }
             None => self.call(def, args),
@@ -568,8 +646,8 @@ impl<'a> Engine<'a> {
     fn venc(v: &Value, out: &mut Vec<u8>) -> bool {
         match v {
             Value::Int(i) => { out.push(1); out.extend_from_slice(&i.to_be_bytes()); true }
-            // Same normalization the hash uses, so two arguments that compare
-            // equal cannot land on two different cache entries.
+            // The same bits the hash uses: -0.0 and +0.0 stay distinct,
+            // because a function can tell them apart (see canon_f64).
             Value::Float(f) => { out.push(5); out.extend_from_slice(&crate::canon::canon_f64(*f).to_be_bytes()); true }
             Value::Str(s) => { out.push(2); out.extend_from_slice(&(s.len() as u32).to_be_bytes()); out.extend_from_slice(s.as_bytes()); true }
             Value::List(xs) => { out.push(3); out.extend_from_slice(&(xs.len() as u32).to_be_bytes()); xs.iter().all(|x| Self::venc(x, out)) }
@@ -631,8 +709,8 @@ impl<'a> Engine<'a> {
         let hits: Vec<&String> = idx.keys().filter(|k| k.starts_with(prefix)).collect();
         let h = match hits.as_slice() {
             [one] => (*one).clone(),
-            [] => return Err(errs(format!("no stored version matches @{:?}", prefix))),
-            _ => return Err(errs(format!("@{:?} is ambiguous ({} matches)", prefix, hits.len()))),
+            [] => return Err(errs(format!("no stored version matches @{}", quote(prefix)))),
+            _ => return Err(errs(format!("@{} is ambiguous ({} matches)", quote(prefix), hits.len()))),
         };
         let mut need = Vec::new();
         let mut st = vec![h.clone()];
@@ -667,7 +745,11 @@ impl<'a> Engine<'a> {
             .def_index
             .get(&("past.rg".to_string(), format!("d_{}", h)))
             .ok_or_else(|| errs("stored def not found after load".into()))?;
+        crate::canon::hash_into(&mut ws2);
         let eng2 = Engine::new(&ws2);
+        // the past version runs nested inside this call, so it counts
+        // against the same depth limit
+        eng2.depth.set(self.depth.get());
         eng2.call(id, args)
     }
 
@@ -676,22 +758,21 @@ impl<'a> Engine<'a> {
         if info.kind == DefKind::Extern {
             let x = &self.ws.modules[info.module_idx].externs[info.item_idx];
             return Err(errs(format!(
-                "extern '{}' (-> {}) has no binding in the rigid VM; compile with `rigid build --target js` to run it",
-                info.name, x.host
+                "extern {} has no binding in the rigid VM; compile with `rigid build --target js` to run it",
+                x.host
             )));
         }
         if info.kind != DefKind::Fn {
             return Err(errs(format!(
-                "'{}' is a table; dispatch it with {}[key](...)",
-                info.name, info.name
+                "{} is a table; dispatch it with a key: table[key](...)",
+                crate::canon::tag(self.ws, def)
             )));
         }
         let f = &self.ws.modules[info.module_idx].fns[info.item_idx];
         if args.len() != f.params.len() {
             return Err(errs(format!(
-                "{}#{} expects {} argument(s), got {}",
-                info.module_path,
-                info.name,
+                "{} expects {} argument(s), got {}",
+                crate::canon::tag(self.ws, def),
                 f.params.len(),
                 args.len()
             )));
@@ -707,6 +788,7 @@ impl<'a> Engine<'a> {
         let mkey = if f.memo {
             self.memo_hash.as_ref().and_then(|hm| hm.get(&def)).and_then(|h| {
                 let mut buf = Vec::new();
+                buf.extend_from_slice(SEMANTICS.as_bytes());
                 buf.extend_from_slice(h.as_bytes());
                 if args.iter().all(|a| Self::venc(a, &mut buf)) {
                     use sha2::{Digest, Sha256};
@@ -726,11 +808,11 @@ impl<'a> Engine<'a> {
             }
         }
         let mut env = args;
-        let out = match self.run(chunk, &mut env)? {
+        let out = match self.enter(chunk, &mut env)? {
             Some(v) => Ok(v),
             None => Err(errs(format!(
-                "{}#{} finished without `return`",
-                info.module_path, info.name
+                "{} finished without `return`",
+                crate::canon::tag(self.ws, def)
             ))),
         };
         if let (Some(k), Ok(v)) = (&mkey, &out) {
@@ -780,10 +862,13 @@ impl<'a> Engine<'a> {
                 Op::Bin(op) => {
                     let r = pop!();
                     let l = pop!();
-                    stack.push(binop(*op, l, r)?);
+                    stack.push(binop(self.ws, *op, l, r)?);
                 }
                 Op::Neg => match pop!() {
-                    Value::Int(v) => stack.push(Value::Int(-v)),
+                    Value::Int(v) => match v.checked_neg() {
+                        Some(n) => stack.push(Value::Int(n)),
+                        None => return Err(errs(format!("integer overflow: -({})", v))),
+                    },
                     Value::Float(v) => stack.push(Value::Float(-v)),
                     _ => return Err(errs("`-` needs a number".to_string())),
                 },
@@ -894,12 +979,13 @@ impl<'a> Engine<'a> {
                         }
                     };
                     if !set.contains(&d) {
-                        let declared: Vec<String> = set
+                        // sorted, so the message is as order-free as the
+                        // set's canonical form
+                        let mut declared: Vec<String> = set
                             .iter()
-                            .map(|&t| {
-                                format!("{}#{}", self.ws.defs[t].module_path, self.ws.defs[t].name)
-                            })
+                            .map(|&t| crate::canon::tag(self.ws, t))
                             .collect();
+                        declared.sort();
                         return Err(errs(format!(
                             "quarantine violation: {} is not in the declared set {{ {} }}",
                             show(self.ws, &Value::Fun(d)),
@@ -918,7 +1004,7 @@ impl<'a> Engine<'a> {
                 Op::TLookup(td) => {
                     let k = pop!();
                     let d = self.table_target(*td, &k)?;
-                    stack.push(Value::Fun(d));
+                    stack.push(Value::Fun(self.rep[d]));
                 }
                 Op::Index => {
                     let k = pop!();
@@ -1002,7 +1088,7 @@ impl<'a> Engine<'a> {
                     Value::Int(v) => stack.push(Value::Float(v as f64)),
                     Value::Str(s) => match s.trim().parse::<f64>() {
                         Ok(v) => stack.push(Value::Float(v)),
-                        Err(_) => return Err(errs(format!("cannot parse {:?} as a float", s))),
+                        Err(_) => return Err(errs(format!("cannot parse {} as a float", quote(&s)))),
                     },
                     other => {
                         return Err(errs(format!(
@@ -1014,12 +1100,14 @@ impl<'a> Engine<'a> {
                 Op::IntConv => match pop!() {
                     Value::Int(v) => stack.push(Value::Int(v)),
                     // Truncation toward zero, which is what `int` has always
-                    // meant here; rounding would be a different builtin.
-                    Value::Float(v) => stack.push(Value::Int(v as i64)),
+                    // meant here; rounding would be a different builtin. A
+                    // float no i64 can hold is an error, not a saturated
+                    // or zeroed integer.
+                    Value::Float(v) => stack.push(Value::Int(float_to_int(v).map_err(errs)?)),
                     Value::Str(s) => match s.trim().parse::<i64>() {
                         Ok(v) => stack.push(Value::Int(v)),
                         Err(_) => {
-                            return Err(errs(format!("cannot parse {:?} as an integer", s)))
+                            return Err(errs(format!("cannot parse {} as an integer", quote(&s))))
                         }
                     },
                     other => {
@@ -1046,7 +1134,7 @@ impl<'a> Engine<'a> {
                             cs.len()
                         )));
                     }
-                    let end = ((start + count) as usize).min(cs.len());
+                    let end = (start.saturating_add(count) as usize).min(cs.len());
                     stack.push(Value::Str(cs[start as usize..end].iter().collect()));
                 }
                 Op::Chars => match pop!() {
@@ -1119,14 +1207,14 @@ impl<'a> Engine<'a> {
                         match host::FILES.with(|f| f.borrow().get(&p).cloned()) {
                             Some(s) => stack.push(Value::Str(s)),
                             None => {
-                                return Err(errs(format!("read_file {:?}: no such file", p)));
+                                return Err(errs(format!("read_file {}: no such file", quote(&p))));
                             }
                         }
                     }
                     #[cfg(not(target_arch = "wasm32"))]
                     match std::fs::read_to_string(&p) {
                         Ok(s) => stack.push(Value::Str(s)),
-                        Err(er) => return Err(errs(format!("read_file {:?}: {}", p, er))),
+                        Err(er) => return Err(errs(format!("read_file {}: {}", quote(&p), io_kind(&er, "read")))),
                     }
                 }
                 Op::WriteFile => {
@@ -1143,7 +1231,7 @@ impl<'a> Engine<'a> {
                     host::FILES.with(|f| f.borrow_mut().insert(p.clone(), text));
                     #[cfg(not(target_arch = "wasm32"))]
                     std::fs::write(&p, text)
-                        .map_err(|er| errs(format!("write_file {:?}: {}", p, er)))?;
+                        .map_err(|er| errs(format!("write_file {}: {}", quote(&p), io_kind(&er, "write"))))?;
                     stack.push(v);
                 }
                 Op::Fail => {
@@ -1186,16 +1274,16 @@ impl<'a> Engine<'a> {
             .ws
             .table_entries
             .get(&td)
-            .ok_or_else(|| errs(format!("table '{}' has no entries at runtime", self.ws.defs[td].name)))?;
+            .ok_or_else(|| errs(format!("table {} has no entries at runtime", crate::canon::tag(self.ws, td))))?;
         match entries.iter().find(|(ek, _)| ek == k) {
             Some((_, t)) => Ok(*t),
             None => {
                 let mut keys: Vec<&str> = entries.iter().map(|(ek, _)| ek.as_str()).collect();
                 keys.sort();
                 Err(errs(format!(
-                    "no entry {:?} in table '{}' (keys: {})",
-                    k,
-                    self.ws.defs[td].name,
+                    "no entry {} in table {} (keys: {})",
+                    quote(k),
+                    crate::canon::tag(self.ws, td),
                     keys.join(", ")
                 )))
             }
@@ -1250,15 +1338,59 @@ fn float_op(op: BinOp, a: f64, b: f64) -> Value {
     }
 }
 
-fn binop(op: BinOp, l: Value, r: Value) -> Result<Value, Value> {
+/// Order an integer against a float exactly. Rounding the integer to a
+/// float first would make 2^53 + 1 equal to 2^53 as a float, and equality
+/// stop being transitive. None when the float is NaN, which is unordered.
+fn cmp_int_float(a: i64, b: f64) -> Option<std::cmp::Ordering> {
+    use std::cmp::Ordering::*;
+    if b.is_nan() {
+        return None;
+    }
+    // 2^63 is exactly representable, and every i64 is below it.
+    if b >= 9223372036854775808.0 {
+        return Some(Less);
+    }
+    if b < -9223372036854775808.0 {
+        return Some(Greater);
+    }
+    // In range, so the truncation is an exact i64.
+    let t = b.trunc();
+    match a.cmp(&(t as i64)) {
+        Equal if b > t => Some(Less),
+        Equal if b < t => Some(Greater),
+        o => Some(o),
+    }
+}
+
+fn compare(op: BinOp, o: Option<std::cmp::Ordering>) -> Value {
+    use std::cmp::Ordering::*;
+    let r = match op {
+        BinOp::Eq => o == Some(Equal),
+        BinOp::Ne => o != Some(Equal),
+        BinOp::Lt => o == Some(Less),
+        BinOp::Gt => o == Some(Greater),
+        BinOp::Le => matches!(o, Some(Less | Equal)),
+        BinOp::Ge => matches!(o, Some(Greater | Equal)),
+        _ => unreachable!("not a comparison"),
+    };
+    Value::Int(r as i64)
+}
+
+fn is_comparison(op: BinOp) -> bool {
+    use BinOp::*;
+    matches!(op, Eq | Ne | Lt | Gt | Le | Ge)
+}
+
+fn binop(ws: &Workspace, op: BinOp, l: Value, r: Value) -> Result<Value, Value> {
     use BinOp::*;
     match (op, l, r) {
-        // `1 == 1.0` is true: equality follows the value, not the variant.
-        (Eq, Value::Int(a), Value::Float(b)) | (Eq, Value::Float(b), Value::Int(a)) => {
-            Ok(Value::Int((a as f64 == b) as i64))
+        // `1 == 1.0` is true: comparison follows the value, not the variant,
+        // and it is exact rather than rounded.
+        (op, Value::Int(a), Value::Float(b)) if is_comparison(op) => {
+            Ok(compare(op, cmp_int_float(a, b)))
         }
-        (Ne, Value::Int(a), Value::Float(b)) | (Ne, Value::Float(b), Value::Int(a)) => {
-            Ok(Value::Int((a as f64 != b) as i64))
+        (op, Value::Float(a), Value::Int(b)) if is_comparison(op) => {
+            Ok(compare(op, cmp_int_float(b, a).map(|o| o.reverse())))
         }
         (Eq, a, b) => Ok(Value::Int((a == b) as i64)),
         (Ne, a, b) => Ok(Value::Int((a != b) as i64)),
@@ -1283,22 +1415,28 @@ fn binop(op: BinOp, l: Value, r: Value) -> Result<Value, Value> {
         (_, Value::Float(a), Value::Float(b)) => Ok(float_op(op, a, b)),
         (_, Value::Float(a), Value::Int(b)) => Ok(float_op(op, a, b as f64)),
         (_, Value::Int(a), Value::Float(b)) => Ok(float_op(op, a as f64, b)),
+        // Integers are 64-bit and checked: a result that does not fit is an
+        // error, never a wrapped number. Wrapping is the same quiet
+        // wrongness as rounding.
         (_, Value::Int(a), Value::Int(b)) => {
+            let overflow = || errs(format!("integer overflow: {} {} {}", a, op.symbol(), b));
             let v = match op {
-                Add => a.wrapping_add(b),
-                Sub => a.wrapping_sub(b),
-                Mul => a.wrapping_mul(b),
+                Add => a.checked_add(b).ok_or_else(overflow)?,
+                Sub => a.checked_sub(b).ok_or_else(overflow)?,
+                Mul => a.checked_mul(b).ok_or_else(overflow)?,
                 Div => {
                     if b == 0 {
                         return Err(errs("division by zero".to_string()));
                     }
-                    a / b
+                    a.checked_div(b).ok_or_else(overflow)?
                 }
                 Rem => {
                     if b == 0 {
                         return Err(errs("remainder by zero".to_string()));
                     }
-                    a % b
+                    // MIN % -1 is 0, which fits; only the CPU instruction
+                    // overflows, and wrapping_rem returns the true answer.
+                    a.wrapping_rem(b)
                 }
                 Lt => (a < b) as i64,
                 Gt => (a > b) as i64,
@@ -1309,11 +1447,109 @@ fn binop(op: BinOp, l: Value, r: Value) -> Result<Value, Value> {
             Ok(Value::Int(v))
         }
         (_, a, b) => Err(errs(format!(
-            "operator needs integers (got mismatched operands: left {:?}, right {:?})",
-            std::mem::discriminant(&a),
-            std::mem::discriminant(&b)
+            "operator needs numbers (got {} and {})",
+            show(ws, &a),
+            show(ws, &b)
         ))),
     }
+}
+
+/// An f64 truncated toward zero, or an error when no i64 holds it.
+pub fn float_to_int(v: f64) -> Result<i64, String> {
+    let t = v.trunc();
+    if t.is_nan() || t < -9223372036854775808.0 || t >= 9223372036854775808.0 {
+        return Err(format!(
+            "cannot convert {} to an integer: out of range",
+            crate::fmt::fmt_f64(v)
+        ));
+    }
+    Ok(t as i64)
+}
+
+/// A command-line argument's value. `2` is an int, `2.0` a float, and
+/// anything else a string — the same reading the lexer gives a literal, so
+/// `rigid run f#area 2.0` and `area(2.0)` mean the same thing. The playground
+/// and the JS target's CLI read arguments by this same rule.
+pub fn cli_value(s: &str) -> Value {
+    if let Ok(v) = s.parse::<i64>() {
+        return Value::Int(v);
+    }
+    if s.contains('.') {
+        if let Ok(v) = s.parse::<f64>() {
+            return Value::Float(v);
+        }
+    }
+    Value::Str(s.to_string())
+}
+
+/// A runtime message with a legend for the definitions it mentions.
+///
+/// Values and errors name definitions by hash (`#6ef3a5556d27`), because a
+/// name is not part of what a definition is. People still want names, so the
+/// CLIs append them, for each tag that belongs to this workspace:
+/// `... [#6ef3a5556d27 = util.rg#clamp]`. This is presentation only — a
+/// program never sees it — and the JS CLI prints the same legend.
+pub fn annotate(ws: &Workspace, msg: &str) -> String {
+    let mut tags: Vec<&str> = Vec::new();
+    let b = msg.as_bytes();
+    let mut i = 0;
+    while i < b.len() {
+        if b[i] == b'#'
+            && i + 13 <= b.len()
+            && b[i + 1..i + 13].iter().all(|c| c.is_ascii_hexdigit() && !c.is_ascii_uppercase())
+            && !(i + 13 < b.len() && b[i + 13].is_ascii_hexdigit())
+        {
+            let t = &msg[i..i + 13];
+            if !tags.contains(&t) {
+                tags.push(t);
+            }
+            i += 13;
+        } else {
+            i += 1;
+        }
+    }
+    let mut legend = Vec::new();
+    for t in tags {
+        let mut names: Vec<String> = (0..ws.defs.len())
+            .filter(|&d| crate::canon::tag(ws, d) == t)
+            .map(|d| format!("{}#{}", ws.defs[d].module_path, ws.defs[d].name))
+            .collect();
+        if !names.is_empty() {
+            names.sort();
+            legend.push(format!("{} = {}", t, names.join(" | ")));
+        }
+    }
+    if legend.is_empty() {
+        msg.to_string()
+    } else {
+        format!("{}  [{}]", msg, legend.join(", "))
+    }
+}
+
+/// A string in quotes, escaped by one fixed rule both engines share:
+/// `\"` `\\` `\n` `\r` `\t` `\0` by name, every other control character
+/// (C0, DEL, C1) as `\u{hex}`, and everything else as itself. Rust's own
+/// Debug escaping depends on the compiler's Unicode tables, so a display
+/// built on it could change with the toolchain.
+pub fn quote(s: &str) -> String {
+    let mut out = String::with_capacity(s.len() + 2);
+    out.push('"');
+    for c in s.chars() {
+        match c {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            '\0' => out.push_str("\\0"),
+            c if (c as u32) < 0x20 || (0x7f..=0x9f).contains(&(c as u32)) => {
+                out.push_str(&format!("\\u{{{:x}}}", c as u32))
+            }
+            c => out.push(c),
+        }
+    }
+    out.push('"');
+    out
 }
 
 /// How many generated cases a property is checked against. High enough to
@@ -1446,7 +1682,8 @@ pub fn run_tests_opts(
 ) -> TestReport {
     let eng = Engine::new(ws);
     // RIGID_CACHE_DIR lets CI and a laptop share one cache. Keys are content
-    // hashes, so a result computed anywhere is valid everywhere.
+    // hashes plus SEMANTICS, so a result computed anywhere by the same
+    // evaluator is valid everywhere.
     #[cfg(not(target_arch = "wasm32"))]
     let cache_path = match std::env::var("RIGID_CACHE_DIR") {
         Ok(d) if !d.is_empty() => {
@@ -1497,7 +1734,7 @@ pub fn run_tests_opts(
             sayln!("skip  {} (not hashed)", r);
             continue;
         };
-        let key = format!("{}:{}", r, crate::canon::hex(h));
+        let key = format!("{}:{}:{}", SEMANTICS, r, crate::canon::hex(h));
         if let Some(passed) = cache.get(&key) {
             rep.skipped += 1;
             // In quiet mode a cached pass is the uninteresting case; a cached
@@ -1546,7 +1783,7 @@ pub fn run_tests_opts(
             Err(e) => {
                 rep.executed += 1;
                 rep.failed += 1;
-                sayln!("FAIL  {}  (runtime error: {})", r, show(ws, &e));
+                sayln!("FAIL  {}  (runtime error: {})", r, annotate(ws, &show(ws, &e)));
                 cache.insert(key, false);
             }
         }

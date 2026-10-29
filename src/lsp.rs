@@ -43,7 +43,7 @@ impl Lsp {
     fn snapshot(&self) -> Result<Snapshot, Vec<Diagnostic>> {
         let mut ws = resolve::load_workspace_overlay(&self.root, &self.overlay)?;
         let mut diags = resolve::resolve(&mut ws);
-        let hashes = canon::hash_workspace(&ws);
+        let hashes = canon::hash_into(&mut ws);
         diags.extend(crate::infer::analyze(&ws));
         // read-only sidecar reconciliation: rules fire, nothing is written
         for mi in 0..ws.modules.len() {

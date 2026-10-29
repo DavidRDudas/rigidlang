@@ -121,10 +121,7 @@ fn dispatch(input: &str) -> String {
             };
             let vals: Vec<eval::Value> = args
                 .iter()
-                .map(|s| match s.parse::<i64>() {
-                    Ok(v) => eval::Value::Int(v),
-                    Err(_) => eval::Value::Str(s.clone()),
-                })
+                .map(|s| eval::cli_value(s))
                 .collect();
             // Memoization is on, backed by a store that survives between
             // runs. Temporal calls stay off: they need a workspace on disk.
@@ -135,7 +132,7 @@ fn dispatch(input: &str) -> String {
                 Ok(v) => result = eval::show(&ws, &v),
                 Err(e) => {
                     return response(false, &eval::host::take_output(),
-                                    &format!("runtime error: {}", eval::show(&ws, &e)),
+                                    &format!("runtime error: {}", eval::annotate(&ws, &eval::show(&ws, &e))),
                                     &diags, stats);
                 }
             }

@@ -44,6 +44,21 @@ impl BinOp {
             BinOp::Ge => 11,
         }
     }
+    pub fn symbol(self) -> &'static str {
+        match self {
+            BinOp::Add => "+",
+            BinOp::Sub => "-",
+            BinOp::Mul => "*",
+            BinOp::Div => "/",
+            BinOp::Rem => "%",
+            BinOp::Eq => "==",
+            BinOp::Ne => "!=",
+            BinOp::Lt => "<",
+            BinOp::Gt => ">",
+            BinOp::Le => "<=",
+            BinOp::Ge => ">=",
+        }
+    }
 }
 
 #[derive(Debug, Clone)]

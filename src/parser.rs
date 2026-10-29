@@ -8,7 +8,16 @@ pub struct Parser {
     toks: Vec<Token>,
     pos: usize,
     file: String,
+    /// How deep the tree under construction already is. Every later pass
+    /// walks the tree recursively, so an unbounded tree is a crash waiting
+    /// for its input; past the limit the source is refused as E0101.
+    depth: usize,
 }
+
+/// The deepest tree the parser will build. Nested brackets, blocks, unary
+/// minus and each operator of a chain all count, so a flat `1 + 1 + ...` of
+/// a million terms is refused as surely as a million nested parentheses.
+pub const MAX_NESTING: usize = 1000;
 
 pub fn parse_module(src: &str, path: &str) -> Result<Module, Diagnostic> {
     let (toks, comments) = lex(src, path).map_err(|(msg, span)| {
@@ -18,6 +27,7 @@ pub fn parse_module(src: &str, path: &str) -> Result<Module, Diagnostic> {
         toks,
         pos: 0,
         file: path.to_string(),
+        depth: 0,
     };
     let mut m = p.module(path)?;
     m.comments = comments;
@@ -50,6 +60,18 @@ impl Parser {
             Some(self.span()),
             msg.to_string(),
         )
+    }
+    /// One level deeper, or E0101 past `MAX_NESTING`. A failed parse is
+    /// abandoned whole, so only the success paths restore the count.
+    fn deeper(&mut self) -> Result<(), Diagnostic> {
+        self.depth += 1;
+        if self.depth > MAX_NESTING {
+            return Err(self.err(&format!(
+                "nested too deeply (more than {} levels of expressions, blocks and operators)",
+                MAX_NESTING
+            )));
+        }
+        Ok(())
     }
     fn expect(&mut self, t: Tok, what: &str) -> Result<Token, Diagnostic> {
         if *self.peek() == t {
@@ -290,6 +312,13 @@ impl Parser {
     }
 
     fn stmt(&mut self) -> Result<Stmt, Diagnostic> {
+        self.deeper()?;
+        let s = self.stmt_inner()?;
+        self.depth -= 1;
+        Ok(s)
+    }
+
+    fn stmt_inner(&mut self) -> Result<Stmt, Diagnostic> {
         if matches!(self.peek(), Tok::Ident(_)) && *self.peek2() == Tok::Assign {
             let name = self.ident()?;
             self.expect(Tok::Assign, "`=`")?;
@@ -392,7 +421,10 @@ impl Parser {
         if *self.peek() == Tok::KwElse {
             self.bump();
             if *self.peek() == Tok::KwIf {
+                // each `else if` nests one level deeper in the tree
+                self.deeper()?;
                 els.push(self.if_statement()?);
+                self.depth -= 1;
             } else {
                 els = self.block()?;
             }
@@ -401,11 +433,15 @@ impl Parser {
     }
 
     fn expr(&mut self) -> Result<Expr, Diagnostic> {
-        self.comparison()
+        self.deeper()?;
+        let e = self.comparison()?;
+        self.depth -= 1;
+        Ok(e)
     }
 
     fn comparison(&mut self) -> Result<Expr, Diagnostic> {
         let mut l = self.additive()?;
+        let mut chain = 0;
         loop {
             let op = match self.peek() {
                 Tok::EqEq => BinOp::Eq,
@@ -417,6 +453,8 @@ impl Parser {
                 _ => break,
             };
             self.bump();
+            self.deeper()?;
+            chain += 1;
             let r = self.additive()?;
             l = Expr::Binop {
                 op,
@@ -424,11 +462,13 @@ impl Parser {
                 r: Box::new(r),
             };
         }
+        self.depth -= chain;
         Ok(l)
     }
 
     fn additive(&mut self) -> Result<Expr, Diagnostic> {
         let mut l = self.multiplicative()?;
+        let mut chain = 0;
         loop {
             let op = match self.peek() {
                 Tok::Plus => BinOp::Add,
@@ -436,6 +476,8 @@ impl Parser {
                 _ => break,
             };
             self.bump();
+            self.deeper()?;
+            chain += 1;
             let r = self.multiplicative()?;
             l = Expr::Binop {
                 op,
@@ -443,11 +485,13 @@ impl Parser {
                 r: Box::new(r),
             };
         }
+        self.depth -= chain;
         Ok(l)
     }
 
     fn multiplicative(&mut self) -> Result<Expr, Diagnostic> {
         let mut l = self.unary()?;
+        let mut chain = 0;
         loop {
             let op = match self.peek() {
                 Tok::Star => BinOp::Mul,
@@ -456,6 +500,8 @@ impl Parser {
                 _ => break,
             };
             self.bump();
+            self.deeper()?;
+            chain += 1;
             let r = self.unary()?;
             l = Expr::Binop {
                 op,
@@ -463,13 +509,16 @@ impl Parser {
                 r: Box::new(r),
             };
         }
+        self.depth -= chain;
         Ok(l)
     }
 
     fn unary(&mut self) -> Result<Expr, Diagnostic> {
         if *self.peek() == Tok::Minus {
             self.bump();
+            self.deeper()?;
             let e = self.unary()?;
+            self.depth -= 1;
             return Ok(Expr::Neg(Box::new(e)));
         }
         self.postfix()
@@ -477,7 +526,12 @@ impl Parser {
 
     fn postfix(&mut self) -> Result<Expr, Diagnostic> {
         let mut e = self.atom()?;
+        let mut chain = 0;
         loop {
+            if matches!(self.peek(), Tok::Dot | Tok::LBracket) {
+                self.deeper()?;
+                chain += 1;
+            }
             match self.peek() {
                 Tok::Dot => {
                     self.bump();
@@ -499,6 +553,7 @@ impl Parser {
                 _ => break,
             }
         }
+        self.depth -= chain;
         Ok(e)
     }
 
@@ -789,6 +844,14 @@ impl Parser {
                 let mut fields = Vec::new();
                 if *self.peek() != Tok::RBrace {
                     loop {
+                        // A field given twice has no meaning to settle on:
+                        // canonical form sorts fields, so "the last one
+                        // wins" would depend on how the literal was written.
+                        if let Tok::Ident(n) = self.peek() {
+                            if fields.iter().any(|(f, _): &(Ident, Expr)| &f.name == n) {
+                                return Err(self.err(&format!("field '{}' is given twice", n)));
+                            }
+                        }
                         let name = self.ident()?;
                         self.expect(Tok::Colon, "`:`")?;
                         let v = self.expr()?;

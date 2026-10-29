@@ -19,7 +19,7 @@
     "sort_is_idempotent": "sha256:f1b1a3728289f568f945ec9d5f44c89a1a304dd79eaa0791c4e1674535badd4c",
     "sort_preserves_length": "sha256:1a8434341f6d918f02970fe80a7a39c4eff7de83e162ece2cb894ebb4da59584",
     "sum": "sha256:b6fd535ab194369408118ed8e52bd09958e555705ecf9783162fe8d40045b09a",
-    "sum_ignores_order": "sha256:97e2fd85854fb626537b3d70b7d590b306558cf69eba51233dc4a37f415cfdd0",
+    "sum_ignores_order": "sha256:9f70463c3e85d881876b18b43471aebe2fd8aaa2451ae24210c22ff1a703a109",
     "take": "sha256:000637a5f1c87d8015d5ca76c6ddf170b54d15c0b930010cc5b6a2889152ff84",
     "take_and_drop_rejoin": "sha256:e9bdce4618cb5f3f31d9cc3f62bddcedc7919d7d6120b42bcc4dbbfc4ceffe45",
     "test_flatten": "sha256:1b93da257523ab2f7dbafe33a9feb627659991af6a84a8dcdbb4b9a2d476c0ca",
@@ -36,6 +36,6 @@
     "unique_is_idempotent": "sha256:438f1115c2b1d30a36a8cc410064236fbdae3cdebbd59122e418328539131593"
   },
   "quarantine": {},
-  "module_hash": "sha256:c78c4d9951c9bd97ca024b0dd78c816d7a9047a2bfc7f81d08165fcfa4810e9b",
+  "module_hash": "sha256:0990bcf0ee97d3e22cdb967dd8e2ee38ff039fc7b9b0d71062d078e095f79945",
   "references": {}
 }

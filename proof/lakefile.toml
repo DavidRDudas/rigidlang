@@ -1,0 +1,13 @@
+name = "rigid_proof"
+version = "0.1.0"
+defaultTargets = ["RigidModel", "rigid-model"]
+# A proof with a gap in it is not a proof: `sorry` (a warning by default)
+# fails the build.
+moreLeanArgs = ["-DwarningAsError=true"]
+
+[[lean_lib]]
+name = "RigidModel"
+
+[[lean_exe]]
+name = "rigid-model"
+root = "Main"

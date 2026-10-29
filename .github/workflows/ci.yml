@@ -45,3 +45,29 @@ jobs:
         run: |
           rustup target add wasm32-unknown-unknown
           cargo build --release --target wasm32-unknown-unknown --lib
+
+  proofs:
+    # proof/ is a Lean model of rigid's expression core with machine-checked
+    # proofs that canonical form preserves meaning. Checking the proofs is
+    # half of it; the other half is that the real VM behaves as the model
+    # does, which the comparison below checks on generated programs.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Lean (the version proof/lean-toolchain names)
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -o elan-init.sh
+          sh elan-init.sh -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Check the proofs (and build the model's evaluator)
+        working-directory: proof
+        run: lake build
+
+      - name: The VM matches the proven model
+        run: |
+          for seed in 1 2 3 4 5 6 7 8; do
+            RIGID_FUZZ_SEED=$seed RIGID_FUZZ_CASES=1000 \
+              cargo test --release --test soundness model -- --nocapture
+          done

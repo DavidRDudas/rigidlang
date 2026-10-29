@@ -1272,3 +1272,339 @@ process.stdout.write(JSON.stringify(out));
         good.len() - values
     );
 }
+
+// ------------------------------------------------------- the proven model
+//
+// proof/ holds a Lean model of rigid's expression core, with machine-checked
+// proofs that canonical form preserves meaning (same hash, same behaviour).
+// A proof about a model says nothing about the VM unless the VM *is* the
+// model on the programs they share — which this test checks, on generated
+// programs in the modelled subset, against the model's own evaluator built as
+// `proof/.lake/build/bin/rigid-model`. It is skipped when that is not built
+// (`cd proof && lake build`); CI builds it.
+
+#[derive(Clone)]
+enum M {
+    Int(&'static str),
+    Str(&'static str),
+    Var(String),
+    Bin(&'static str, Box<M>, Box<M>),
+    Ite(Box<M>, Box<M>, Box<M>),
+    Rec(Vec<(&'static str, M)>),
+    Get(Box<M>, &'static str),
+    Fail(Box<M>),
+    Try(Box<M>),
+    Call(String, Box<M>),
+}
+
+/// `let`s, then a result.
+struct MBody {
+    lets: Vec<(String, M)>,
+    ret: M,
+}
+
+// Large values are frequent so arithmetic often reaches the 64-bit edge.
+const M_INTS: &[&str] = &[
+    "0", "1", "2", "7", "100", "3037000499", "4611686018427387904", "4611686018427387904",
+    "9223372036854775807", "9223372036854775807",
+];
+const M_STRS: &[&str] = &["", "a", "ab", "é", "😀", "～", "\"q\"", "back\\slash", "line\nbreak", "tab\there", "esc\x1b"];
+const M_FIELDS: &[&str] = &["a", "b", "c", "ok", "value", "constructor", "zz"];
+
+struct MGen<'a> {
+    rng: &'a mut Rng,
+    /// locals in scope, with the domain the checker knows each by
+    scope: Vec<(String, D)>,
+    /// helpers this body may call
+    callable: Vec<String>,
+}
+
+/// The domain the checker infers for an expression's value, where it can.
+fn m_domain(e: &M, scope: &[(String, D)]) -> D {
+    match e {
+        M::Int(_) => D::Num,
+        M::Str(_) => D::Str,
+        M::Rec(_) | M::Try(_) => D::Rec,
+        M::Bin(op, a, _) if *op == "+" && matches!(**a, M::Str(_)) => D::Str,
+        M::Bin(op, ..) if *op != "+" => D::Num,
+        M::Var(x) => scope.iter().rev().find(|(n, _)| n == x).map(|p| p.1).unwrap_or(D::Any),
+        _ => D::Any,
+    }
+}
+
+impl<'a> MGen<'a> {
+    fn leaf(&mut self, want: D) -> M {
+        let vars: Vec<String> = self
+            .scope
+            .iter()
+            .filter(|(_, d)| want == D::Any || *d == D::Any || *d == want)
+            .map(|(n, _)| n.clone())
+            .collect();
+        if !vars.is_empty() && self.rng.chance(45) {
+            return M::Var(vars[self.rng.below(vars.len())].clone());
+        }
+        match want {
+            D::Rec => M::Rec(vec![]),
+            D::Str => M::Str(self.rng.pick(M_STRS)),
+            D::Num => M::Int(self.rng.pick(M_INTS)),
+            _ => {
+                if self.rng.chance(35) {
+                    M::Str(self.rng.pick(M_STRS))
+                } else {
+                    M::Int(self.rng.pick(M_INTS))
+                }
+            }
+        }
+    }
+
+    /// An expression the checker cannot see to be of a domain other than
+    /// `want` (E0212 would refuse it); unknowable ones still fail at runtime.
+    fn expr(&mut self, depth: u32, want: D) -> M {
+        if depth == 0 || self.rng.chance(25) {
+            return self.leaf(want);
+        }
+        let d = depth - 1;
+        let b = Box::new;
+        let e = match self.rng.below(12) {
+            0..=2 => {
+                let op = self.rng.pick(OPS);
+                if op == "==" || op == "!=" {
+                    M::Bin(op, b(self.expr(d, D::Any)), b(self.expr(d, D::Any)))
+                } else if op == "+" && want == D::Any && self.rng.chance(30) {
+                    M::Bin(op, b(M::Str(self.rng.pick(M_STRS))), b(self.expr(d, D::Str)))
+                } else {
+                    M::Bin(op, b(self.expr(d, D::Num)), b(self.expr(d, D::Num)))
+                }
+            }
+            3 => M::Ite(b(self.expr(d, D::Num)), b(self.expr(d, want)), b(self.expr(d, want))),
+            4 | 5 => {
+                let mut names: Vec<&'static str> = M_FIELDS.to_vec();
+                self.rng.shuffle(&mut names);
+                names.truncate(self.rng.below(4));
+                // Fields that fail are common on purpose: with two of them,
+                // the order fields run in decides which error is raised —
+                // the bug this model was built to rule out.
+                M::Rec(
+                    names
+                        .into_iter()
+                        .map(|f| {
+                            let v = self.expr(d, D::Any);
+                            (f, if self.rng.chance(30) { M::Fail(b(v)) } else { v })
+                        })
+                        .collect(),
+                )
+            }
+            6 => M::Get(b(self.expr(d, D::Rec)), self.rng.pick(M_FIELDS)),
+            7 => M::Try(b(self.expr(d, D::Any))),
+            8 if self.rng.chance(40) => M::Fail(b(self.expr(d, D::Any))),
+            9 | 10 if !self.callable.is_empty() => {
+                let f = self.callable[self.rng.below(self.callable.len())].clone();
+                if f == "countdown" {
+                    // recursion, kept shallow: rigid stops at 10,000 calls
+                    M::Call(f, b(M::Int(self.rng.pick(&["0", "1", "2", "7"]))))
+                } else {
+                    let w = if self.rng.chance(70) { D::Num } else { D::Any };
+                    M::Call(f, b(self.expr(d, w)))
+                }
+            }
+            _ => return self.leaf(want),
+        };
+        let got = m_domain(&e, &self.scope);
+        if want != D::Any && got != D::Any && got != want {
+            self.leaf(want)
+        } else {
+            e
+        }
+    }
+
+    fn body(&mut self) -> MBody {
+        let mut lets = Vec::new();
+        for _ in 0..self.rng.below(4) {
+            let e = self.expr(3, D::Any);
+            // reuse a name sometimes: a re-`let` shadows
+            let name = if !self.scope.is_empty() && self.rng.chance(20) {
+                self.scope[self.rng.below(self.scope.len())].0.clone()
+            } else {
+                format!("x{}", self.scope.len())
+            };
+            let dom = m_domain(&e, &self.scope);
+            self.scope.retain(|(n, _)| n != &name);
+            self.scope.push((name.clone(), dom));
+            lets.push((name, e));
+        }
+        let ret = self.expr(3, D::Any);
+        MBody { lets, ret }
+    }
+}
+
+const COUNTDOWN: &str = "fn countdown(n) { return (if ((n < 1)) 0 else (1 + countdown((n - 1)))); }\n";
+
+fn countdown_json() -> serde_json::Value {
+    use serde_json::json;
+    json!(["countdown", "n",
+        ["ite", ["bin", "<", ["var", "n"], ["int", "1"]], ["int", "0"],
+            ["bin", "+", ["int", "1"], ["call", "countdown", ["bin", "-", ["var", "n"], ["int", "1"]]]]]])
+}
+
+fn m_rigid(e: &M) -> String {
+    match e {
+        M::Int(s) => s.to_string(),
+        M::Str(s) => {
+            let mut o = String::from("\"");
+            for c in s.chars() {
+                match c {
+                    '\\' => o.push_str("\\\\"),
+                    '"' => o.push_str("\\\""),
+                    '\n' => o.push_str("\\n"),
+                    '\t' => o.push_str("\\t"),
+                    '\r' => o.push_str("\\r"),
+                    '\x1b' => o.push_str("\\e"),
+                    c => o.push(c),
+                }
+            }
+            o.push('"');
+            o
+        }
+        M::Var(x) => x.clone(),
+        M::Bin(op, a, b) => format!("({} {} {})", m_rigid(a), op, m_rigid(b)),
+        M::Ite(c, t, f) => format!("(if ({}) {} else {})", m_rigid(c), m_rigid(t), m_rigid(f)),
+        M::Rec(fs) => format!(
+            "{{{}}}",
+            fs.iter().map(|(k, v)| format!("{}: {}", k, m_rigid(v))).collect::<Vec<_>>().join(", ")
+        ),
+        M::Get(a, f) => format!("({}).{}", m_rigid(a), f),
+        M::Fail(a) => format!("fail({})", m_rigid(a)),
+        M::Try(a) => format!("try({})", m_rigid(a)),
+        M::Call(f, a) => format!("{}({})", f, m_rigid(a)),
+    }
+}
+
+fn m_json(e: &M) -> serde_json::Value {
+    use serde_json::json;
+    match e {
+        M::Int(s) => json!(["int", s]),
+        M::Str(s) => json!(["str", s]),
+        M::Var(x) => json!(["var", x]),
+        M::Bin(op, a, b) => json!(["bin", op, m_json(a), m_json(b)]),
+        M::Ite(c, t, f) => json!(["ite", m_json(c), m_json(t), m_json(f)]),
+        M::Rec(fs) => json!(["rec", fs.iter().map(|(k, v)| json!([k, m_json(v)])).collect::<Vec<_>>()]),
+        M::Get(a, f) => json!(["get", m_json(a), f]),
+        M::Fail(a) => json!(["fail", m_json(a)]),
+        M::Try(a) => json!(["try", m_json(a)]),
+        M::Call(f, a) => json!(["call", f, m_json(a)]),
+    }
+}
+
+fn body_rigid(b: &MBody) -> String {
+    let mut s = String::new();
+    for (x, e) in &b.lets {
+        s.push_str(&format!("  let {} = {};\n", x, m_rigid(e)));
+    }
+    s.push_str(&format!("  return {};\n", m_rigid(&b.ret)));
+    s
+}
+
+/// The model writes `let x = a;` followed by the rest as one expression.
+fn body_json(b: &MBody) -> serde_json::Value {
+    let mut out = m_json(&b.ret);
+    for (x, e) in b.lets.iter().rev() {
+        out = serde_json::json!(["let", x, m_json(e), out]);
+    }
+    out
+}
+
+fn model_binary() -> Option<PathBuf> {
+    if let Ok(p) = std::env::var("RIGID_MODEL") {
+        return Some(PathBuf::from(p));
+    }
+    let p = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("proof/.lake/build/bin/rigid-model");
+    p.exists().then_some(p)
+}
+
+#[test]
+fn the_vm_matches_the_proven_model() {
+    let Some(model) = model_binary() else {
+        eprintln!("rigid-model not built (cd proof && lake build): skipping the comparison with the proof");
+        return;
+    };
+    on_big_stack(move || vm_matches_model(model));
+}
+
+fn vm_matches_model(model: PathBuf) {
+    let cases = env_num("RIGID_FUZZ_CASES", 300) as usize;
+    let seed = env_num("RIGID_FUZZ_SEED", 0x1ea_4_1ea);
+    let mut rng = Rng(seed.wrapping_mul(0x9E37_79B9_7F4A_7C15) | 1);
+    let mut sources = Vec::new();
+    let mut programs = Vec::new();
+    for i in 0..cases {
+        let mut src = String::from(COUNTDOWN);
+        let mut defs = vec![countdown_json()];
+        let mut callable = vec!["countdown".to_string()];
+        for h in 0..rng.below(4) {
+            let (name, param) = (format!("h{}", h), format!("p{}", h));
+            let mut g = MGen { rng: &mut rng, scope: vec![(param.clone(), D::Any)], callable: callable.clone() };
+            let body = g.body();
+            src.push_str(&format!("fn {}({}) {{\n{}}}\n", name, param, body_rigid(&body)));
+            defs.push(serde_json::json!([name, param, body_json(&body)]));
+            callable.push(name);
+        }
+        let mut g = MGen { rng: &mut rng, scope: vec![], callable };
+        let main = g.body();
+        src.push_str(&format!("fn main() {{\n{}}}\n", body_rigid(&main)));
+        sources.push((format!("m{}.rg", i), src));
+        programs.push(serde_json::json!({"defs": defs, "main": body_json(&main)}));
+    }
+
+    let c = load(&sources);
+    let good: Vec<usize> = (0..cases)
+        .filter(|&i| !c.diags.iter().any(|d| d.severity == Severity::Error && d.file == sources[i].0))
+        .collect();
+    if std::env::var("RIGID_FUZZ_DEBUG").is_ok() {
+        let mut tally: HashMap<String, usize> = HashMap::new();
+        for d in c.diags.iter().filter(|d| d.severity == Severity::Error) {
+            *tally.entry(format!("{} {}", d.code, d.message.split(':').next().unwrap_or(""))).or_default() += 1;
+        }
+        let mut t: Vec<_> = tally.into_iter().collect();
+        t.sort_by(|x, y| y.1.cmp(&x.1));
+        for (k, n) in t.iter().take(12) {
+            eprintln!("{:5}  {}", n, k);
+        }
+    }
+    assert!(good.len() * 2 >= cases, "only {} of {} generated programs check", good.len(), cases);
+
+    let dir = scratch("model");
+    let input = dir.join("programs.json");
+    let chosen: Vec<&serde_json::Value> = good.iter().map(|&i| &programs[i]).collect();
+    std::fs::write(&input, serde_json::to_string(&chosen).unwrap()).unwrap();
+    let out = Command::new(&model).arg(&input).output().unwrap();
+    assert!(out.status.success(), "rigid-model failed: {}", String::from_utf8_lossy(&out.stderr));
+    let expected: Vec<String> = serde_json::from_slice(&out.stdout).unwrap();
+    let _ = std::fs::remove_dir_all(&dir);
+
+    let mut failures = Vec::new();
+    let mut values = 0;
+    for (k, &i) in good.iter().enumerate() {
+        let vm = run(&c, &sources[i].0, "main", vec![]);
+        if !vm.starts_with("error: ") {
+            values += 1;
+        }
+        if vm != expected[k] {
+            failures.push(format!(
+                "program {}:\n  VM:    {}\n  model: {}\n--- source ---\n{}",
+                i, vm, expected[k], sources[i].1
+            ));
+        }
+    }
+    if !failures.is_empty() {
+        let n = failures.len();
+        failures.truncate(3);
+        panic!("{} program(s) where the VM and the proven model disagree; the first:\n\n{}", n, failures.join("\n\n"));
+    }
+    eprintln!(
+        "{} of {} generated programs: the VM matches the proven model ({} returned a value, {} an error)",
+        good.len(),
+        cases,
+        values,
+        good.len() - values
+    );
+}

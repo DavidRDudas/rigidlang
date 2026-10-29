@@ -335,6 +335,7 @@ src/fixes.rs      fix --apply / rebind
 src/fmt.rs        canonical rendering (comment-preserving)
 src/diag.rs       stable-coded, JSON-emitting diagnostics with typed fixes
 tests/soundness.rs the guarantees, checked over generated programs
+proof/            Lean model of the core, with the proofs (see proof/README.md)
 docs/SPEC.md           grammar, canonical form, sidecar semantics, roadmap
 docs/QUARANTINE.md     design doc: dyn, guarantees G1–G4, gradual reference exactness
 demo.sh           the walkthrough
@@ -402,9 +403,15 @@ bound in JavaScript, and panicked on `min / -1`; names leaking into runtime
 values; recursion that aborted the process; `isqrt` returning a negative
 number at the largest integer.
 
-These are tests, not proofs: they can find a counterexample, not rule every
-one out. Machine-checked proofs of the core (a Lean model of evaluation and
-canonical form) are the next step.
+For the expression core, the first claim is also **proved**:
+[proof/](proof/README.md) is a Lean 4 model of rigid's evaluator and canonical
+form, with kernel-checked theorems that canonical form preserves meaning —
+two definitions with one hash give one result on every argument — and a
+machine-checked counterexample showing what source-order records broke. The
+proof is tied to the real compiler by running the VM against the proven
+evaluator on generated programs. Loops, lists, floats, closures, `dyn`,
+tables and the JavaScript backend are covered by the tests but not yet by the
+proof; the tests find counterexamples, the proof rules them out.
 
 ## Status
 

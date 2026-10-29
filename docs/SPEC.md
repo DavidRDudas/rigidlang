@@ -158,7 +158,9 @@ canonical form performs has a matching rule in the evaluator:
 `tests/soundness.rs` checks this contract over generated programs: renaming
 every definition, parameter and local, shuffling record fields and table
 entries, reordering definitions and reformatting must leave every hash and
-every result unchanged.
+every result unchanged. For the expression core it is also proved:
+`proof/RigidModel/Soundness.lean` (`lower_sound`, `same_identity_same_behaviour`),
+checked by Lean, with the VM tested against the proven evaluator.
 
 ### 3.5 Cycles (v1: SCC hashing)
 
